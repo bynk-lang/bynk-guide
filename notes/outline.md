@@ -113,4 +113,5 @@ hand-written Worker can call it, but it must send the `X-Bynk-Contract` hash
 from `bynk-contracts.json` and an `X-Bynk-Caller` identity, and the hash
 changes whenever the signature does. That is an internal protocol, not an API.
 The supported seams are the other way round: put the Bynk Worker in front, or
-call its `from http` routes. Say that, and don't teach the wire format.
+call its `from http` routes. Say that, don't teach the wire format, and
+footnote the interop track (accuser/bynk#1973).
