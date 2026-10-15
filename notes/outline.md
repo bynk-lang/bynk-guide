@@ -106,8 +106,8 @@ server and editor tooling. The `bundle` target is introduced in chapter 1 and
 then set aside.
 
 Chapter 8 gives one paragraph to the reader who adopts Bynk piecemeal, beside
-an existing TypeScript Worker. Checked against the emitted Workers (bynkc
-0.314.23; recheck at the pin): a Bynk `on call` service is a plain
+an existing TypeScript Worker. Checked against the emitted Workers at the
+pin, 0.330.4: a Bynk `on call` service is a plain
 `POST /_bynk/call/<service>` with a JSON body over a Service Binding, so a
 hand-written Worker can call it, but it must send the `X-Bynk-Contract` hash
 from `bynk-contracts.json` and an `X-Bynk-Caller` identity, and the hash
