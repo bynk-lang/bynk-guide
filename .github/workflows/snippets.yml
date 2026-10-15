@@ -1,0 +1,90 @@
+# Compile-test and format-check every Bynk listing presented as a complete
+# program (working principle 7). `bynkc check` over each project under
+# snippets/ must match its expected outcome in snippets/EXPECTATIONS.tsv: a
+# clean pass, the exact refusal a chapter quotes, or a specific warning. The
+# chapters typeset these files verbatim, so a second gate holds them to
+# canonical formatting, and a third builds each one and type-checks the emitted
+# TypeScript.
+#
+# ci.yml calls this at the pinned release on every push and pull request.
+# bynk-canary.yml calls it at each new Bynk release, so a release that renames
+# a diagnostic a chapter quotes, or changes the formatter, opens a `canary`
+# issue.
+name: Snippets
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: Bynk version to check against, exact or "latest" (empty for the pinned release)
+        type: string
+        default: ""
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Bynk version to check against, exact or "latest" (empty for the pinned release)
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  # The published compiler the manuscript's diagnostics are written against.
+  # Chapters quote exact diagnostic codes, so this pin is part of the book's
+  # evidence: bump it deliberately, with the snippet gate green, when the
+  # manuscript is revised for a newer release. metadata.typ's bynk-version
+  # must change with it: the book prints that release, and ci.yml checks the
+  # two agree.
+  BYNK_VERSION: ${{ inputs.version || '0.330.4' }}
+
+jobs:
+  snippets:
+    name: Snippets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: bynk-lang/setup-bynk@5764a6e9a326badfc9eb47086b8837aace7a5c2a # v1.0.3
+        id: bynk
+        with:
+          version: ${{ env.BYNK_VERSION }}
+      - name: Compile-test the manuscript's Bynk snippets
+        run: ./scripts/check-book-snippets.sh
+        env:
+          BYNKC: ${{ steps.bynk.outputs.bindir }}/bynkc
+      - name: Format-check the manuscript's Bynk snippets
+        # Runs even when the compile gate failed: the two report different
+        # defects, and a book edit that breaks both should surface both in one
+        # run rather than one round trip each. Skipped when the toolchain never
+        # installed, which would only add a confusing "bynkc not found". A
+        # formatter change in a newer release is drift too: the chapters
+        # typeset these files verbatim.
+        if: ${{ !cancelled() && steps.bynk.conclusion == 'success' }}
+        run: ./scripts/check-book-format.sh
+        env:
+          BYNKC: ${{ steps.bynk.outputs.bindir }}/bynkc
+      - name: Build and type-check the manuscript's Bynk snippets
+        # `bynkc check` accepting a program does not mean it builds. This
+        # compiles each project for bundle and workers and runs the emitted
+        # code through `tsc --strict`. Known failures are baselined in
+        # snippets/EMIT-BASELINE. Runs after a compile-gate failure for the same
+        # reason the format gate does.
+        if: ${{ !cancelled() && steps.bynk.conclusion == 'success' }}
+        run: ./scripts/check-book-emit.sh
+        env:
+          BYNKC: ${{ steps.bynk.outputs.bindir }}/bynkc
+          TSC: npx --yes --package typescript@5.9.3 tsc
+      - name: Report the drift
+        if: ${{ failure() && inputs.version != '' }}
+        env:
+          INSTALLED: ${{ steps.bynk.outputs.version }}
+        run: |
+          {
+            echo "### The manuscript's evidence no longer matches Bynk ${INSTALLED#v}"
+            echo
+            echo "A diagnostic changed, or the formatter did. Revise the affected"
+            echo "chapter and snippet, then bump the pin (\`BYNK_VERSION\` in"
+            echo "\`.github/workflows/snippets.yml\`) to this release."
+          } >> "$GITHUB_STEP_SUMMARY"

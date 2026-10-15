@@ -1,0 +1,33 @@
+name: Release
+
+# Pushing a tag such as v1.0.0 typesets the manuscript and publishes the PDF as
+# a GitHub release asset.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish the PDF
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Cache the pinned Typst toolchain
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: build/toolchain
+          key: typst-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/build-book.sh') }}
+      - name: Build the manuscript
+        run: ./scripts/build-book.sh
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          cp output/pdf/bynk-guide.pdf "output/pdf/bynk-guide-${TAG}.pdf"
+          gh release create "$TAG" "output/pdf/bynk-guide-${TAG}.pdf" \
+            --title "$TAG" --generate-notes --verify-tag

@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Newer Bynk releases are checked by bynk-canary.yml, which the org canary in
+# bynk-lang/.github dispatches on each release (and weekly).
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  manuscript:
+    # Typeset the manuscript with the pinned Typst toolchain. The wrapper
+    # verifies the vendored Source fonts, downloads only the pinned Typst
+    # release when needed, and ignores runner-installed fonts.
+    name: Print book (Typst)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Cache the pinned Typst toolchain
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: build/toolchain
+          # Hashing the wrapper keys the cache on its Typst version and platform
+          # digests without duplicating those values in this workflow.
+          key: typst-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/build-book.sh') }}
+      - name: Check the book names the pinned compiler
+        # The copyright page and preface print bynk-version from metadata.typ.
+        # It must be the release the snippet gates pin, or the book would name
+        # a compiler its examples were not checked against.
+        run: |
+          printed="$(sed -n 's/^ *bynk-version: "\(.*\)",$/\1/p' metadata.typ)"
+          pinned="$(sed -n "s/.*BYNK_VERSION: .*|| '\(.*\)' }}$/\1/p" .github/workflows/snippets.yml)"
+          if [ -z "$printed" ] || [ "$printed" != "$pinned" ]; then
+            echo "::error file=metadata.typ::bynk-version is '${printed}', but snippets.yml pins '${pinned}'"
+            exit 1
+          fi
+          echo "The book names Bynk ${printed}, the pinned release."
+      - name: Check the printed diffs match their snippets
+        # Chapters print diffs between snippet projects. They are generated
+        # files; this fails if a snippet changed without regenerating them.
+        run: ./scripts/make-book-diffs.sh --check
+      - name: Build the manuscript
+        run: ./scripts/build-book.sh
+      - name: Upload the manuscript PDF
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: bynk-guide
+          path: output/pdf/bynk-guide.pdf
+          if-no-files-found: error
+          retention-days: 14
+
+  snippets:
+    # The manuscript's Bynk listings at the pinned release (snippets.yml).
+    name: Snippets (pinned release)
+    uses: ./.github/workflows/snippets.yml

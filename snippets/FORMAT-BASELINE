@@ -1,0 +1,5 @@
+# Snippet projects that are not canonically formatted yet.
+#
+# scripts/check-book-format.sh reports these without failing. Everything not
+# listed here is gated. A ratchet: a listed project that has become canonical
+# fails the gate with a note to delete its line. Empty.

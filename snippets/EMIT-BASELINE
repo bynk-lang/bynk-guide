@@ -1,0 +1,8 @@
+# Snippet builds known to fail the emit gate (scripts/check-book-emit.sh).
+#
+# Every project expected to pass `bynkc check` is also compiled for the bundle
+# and workers targets and type-checked with `tsc --strict`. A build listed here
+# fails today; it is reported without failing the gate.
+#
+# This is a ratchet: a listed build that starts to pass fails the gate with a
+# note to delete its line, so the list can only shrink. Empty.

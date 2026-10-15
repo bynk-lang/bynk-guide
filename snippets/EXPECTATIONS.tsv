@@ -1,0 +1,9 @@
+# Expected non-clean outcomes for the guide's Bynk snippet projects.
+# Any project NOT listed here must `bynkc check` cleanly (a valid program).
+# Columns (tab-separated): <path under snippets/>	<pass|fail|warn|build-fail>	<bynk code>
+#
+# fail: `bynkc check` must refuse the project with exactly this diagnostic
+# code: a deliberately rejected listing whose refusal the chapter quotes.
+# warn: the project must compile with this warning.
+# build-fail: `bynkc check` accepts the project, and building it must refuse it
+# with this code. scripts/check-book-emit.sh asserts the refusal.

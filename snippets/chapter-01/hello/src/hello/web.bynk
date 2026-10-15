@@ -1,0 +1,7 @@
+context hello.web
+
+service api from http {
+	on GET("/") () -> Effect[HttpResult[String]] by Visitor {
+		Ok("Hello, world")
+	}
+}

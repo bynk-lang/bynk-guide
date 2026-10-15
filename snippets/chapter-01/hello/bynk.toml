@@ -1,0 +1,9 @@
+# Compiler-tested source for chapter 1.
+[project]
+name = "chapter-01-hello"
+version = "0.1.0"
+
+[fmt]
+indent = "tab"
+max_line_width = 80
+trailing_comma = true

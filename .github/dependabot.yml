@@ -1,0 +1,9 @@
+version: 2
+updates:
+  # The GitHub Actions pinned by SHA in .github/workflows/. Note that a
+  # setup-bynk bump is a *toolchain installer* bump, not a compiler bump — the
+  # compiler version this book is written against is BYNK_VERSION in snippets.yml.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
