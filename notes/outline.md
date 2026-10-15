@@ -11,7 +11,10 @@ unit test of what it built; chapter 10 adds the tiers above that.
 
 1. **A Worker in Bynk**
    Installing Bynk, `bynk.toml` and the project layout. A context and an HTTP
-   service. `bynkc check`, `bynk dev`. What it emits.
+   service. `bynkc check`, `bynk dev`. What it emits. The two targets: `bundle`,
+   the compiler's default, makes one TypeScript tree with in-process calls and
+   no Durable Objects; `workers` makes one Worker per context, which is what
+   this book builds and deploys. Say how to choose it, and what `bundle` is for.
    *Replaces:* a `fetch` handler and a `wrangler.toml`.
 2. **Types you can trust**
    Records, enums, `opaque` types, refined types, admission at the boundary,
@@ -98,7 +101,16 @@ The Book, *Architecture that compiles*, the examples index, the canary.
 ## Not covered
 
 WebSockets and `Oidc` actors (pointers to the Book), localisation, static
-assets, sagas (pointer to the planned-features appendix), the `bundle` target,
-and the language server and editor tooling. One paragraph, probably in chapter
-8, says how a Bynk context sits beside an existing TypeScript Worker over a
-Service Binding, for the reader who adopts it piecemeal.
+assets, sagas (pointer to the planned-features appendix), and the language
+server and editor tooling. The `bundle` target is introduced in chapter 1 and
+then set aside.
+
+Chapter 8 gives one paragraph to the reader who adopts Bynk piecemeal, beside
+an existing TypeScript Worker. Checked against the emitted Workers (bynkc
+0.314.23; recheck at the pin): a Bynk `on call` service is a plain
+`POST /_bynk/call/<service>` with a JSON body over a Service Binding, so a
+hand-written Worker can call it, but it must send the `X-Bynk-Contract` hash
+from `bynk-contracts.json` and an `X-Bynk-Caller` identity, and the hash
+changes whenever the signature does. That is an internal protocol, not an API.
+The supported seams are the other way round: put the Bynk Worker in front, or
+call its `from http` routes. Say that, and don't teach the wire format.

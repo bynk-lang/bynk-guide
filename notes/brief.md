@@ -49,9 +49,15 @@ the query algebra, rich storage kinds, held connections) evolves additively
 through 1.x.
 
 So the book is **thorough on the Foundations layer** and **lighter on the
-coordination layer**. Events, queues and cron each get a chapter. WebSockets and
-`Oidc` actors are mentioned and pointed at the Book until there is a reason to
-build one.
+coordination layer**. Events get a chapter, and queues and cron share one.
+WebSockets and `Oidc` actors are mentioned and pointed at the Book until there
+is a reason to build one.
+
+One deliberate exception: capabilities and adapters are 1.x, but they get a full
+chapter. An adapter is the only place a Bynk program reaches npm, an outside
+API or anything else Bynk doesn't do, and this reader will need that seam before
+anything else in the coordination layer. Expect the canary to flag that chapter
+more often than the Foundations chapters, and revise it rather than thin it.
 
 ## Keeping it true before 1.0
 
