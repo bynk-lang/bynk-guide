@@ -69,7 +69,7 @@ It has one variant so far, and later chapters add more (an order id used
 twice, stock that has run out, a declined card). `TooLarge` carries a
 payload, the `ValidationError` that says why the total isn't a valid price.
 When no variant carries anything, a sum is written `enum { … }` instead;
-chapter 6's order status is one. The `embeds` line comes up shortly.
+chapter 5's `StockError` is the first. The `embeds` line comes up shortly.
 
 #lead-in[
 Now the rule itself:

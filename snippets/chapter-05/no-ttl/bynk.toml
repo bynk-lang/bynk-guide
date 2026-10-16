@@ -1,0 +1,7 @@
+# Intentionally rejected source for chapter 5: a Cache with no @ttl.
+[project]
+name = "kinds"
+version = "0.1.0"
+
+[fmt]
+max_line_width = 74

@@ -28,3 +28,5 @@ chapter-03/emitted/send.ts	emit	chapter-03/shop	workers	workers/shop-orders/hand
 chapter-04/test-run.txt	test	chapter-04/shop
 chapter-04/responses.txt	http	chapter-04/shop
 chapter-04/emitted/wrangler.toml	emit	chapter-04/shop	workers	workers/shop-orders/wrangler.toml
+chapter-05/test-run.txt	test	chapter-05/shop
+chapter-05/responses.txt	http	chapter-05/shop

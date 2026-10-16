@@ -1,0 +1,13 @@
+context shop.orders
+
+uses shop.values
+
+type Hold = { order: OrderId, qty: Int }
+
+agent Inventory {
+	key sku: Sku
+
+	store holds: Map[String, Hold]
+
+	on call holds() -> Effect[Query[Hold]] { holds.values }
+}

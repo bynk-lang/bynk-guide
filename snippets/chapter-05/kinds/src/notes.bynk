@@ -1,0 +1,49 @@
+context notes
+
+consumes bynk { Clock }
+consumes bynk.cloudflare { Kv }
+
+---
+One thing that happened to a page.
+---
+type Visit = { path: String }
+
+---
+A page's recent history and a short-lived cache of what it rendered.
+`visits` keeps a week of appends; `rendered` forgets an entry five
+minutes after it is put.
+---
+agent Page {
+	key path: String
+
+	store visits: Log[Visit] @retain(7.days)
+	store rendered: Cache[String, String] @ttl(5.minutes)
+
+	on call visit(v: Visit) -> Effect[()] given Clock {
+		let _ <- visits.append(v)
+	}
+
+	on call recent(since: Instant) -> Effect[Int] {
+		visits.since(since).count()
+	}
+
+	on call cached(lang: String) -> Effect[Option[String]] given Clock {
+		rendered.get(lang)
+	}
+
+	on call keep(lang: String, html: String) -> Effect[()] given Clock {
+		let _ <- rendered.put(lang, html)
+	}
+}
+
+service flags from http {
+	on GET("/flags/:name") (
+		name: String
+	) -> Effect[HttpResult[String]] by v: Visitor given Kv {
+		let flag <- Kv.get(name)
+		match flag {
+			Some(value) => Ok(value),
+			None => NotFound,
+		}
+	}
+}

@@ -1,0 +1,14 @@
+Running tests...
+
+shop.orders:
+  ✓ a line that fits its types is admitted
+  ✓ a zero quantity is refused
+  ✓ an order's total is quantity times price
+  ✓ an order over 100,000.00 is too large
+  ✓ a fresh order has no line
+  ✓ an order is opened once
+  ✓ restocking adds to what is available
+  ✓ a reservation holds stock for its order, once
+  ✓ more than is available is refused, and takes nothing
+
+9 passed, 0 failed.
