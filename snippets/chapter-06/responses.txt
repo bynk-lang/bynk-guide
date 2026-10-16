@@ -1,0 +1,22 @@
+$ curl -X PUT localhost:8787/stock/widget -d '{"qty":10}'
+200 10
+
+$ curl -X PUT localhost:8787/orders/o1 \
+    -d '{"sku":"widget","qty":3,"cents":2500}'
+201 {"id":"o1","status":"placed","sku":"widget","qty":3,"cents":2500}
+
+$ curl -X PUT localhost:8787/orders/o2 \
+    -d '{"sku":"widget","qty":100,"cents":100}'
+409 {"error":"out of stock"}
+
+$ curl localhost:8787/orders/o2
+200 {"id":"o2","status":"rejected","sku":"widget","qty":100,"cents":100}
+
+$ curl -X POST localhost:8787/orders/o1/cancel
+200 {"id":"o1","status":"cancelled","sku":"widget","qty":3,"cents":2500}
+
+$ curl localhost:8787/stock/widget
+200 10
+
+$ curl -X POST localhost:8787/orders/o1/cancel
+409 {"error":"only a placed order can be cancelled"}

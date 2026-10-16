@@ -1,0 +1,41 @@
+--- a/src/shop/orders.bynk
++++ b/src/shop/orders.bynk
+@@ -60,7 +101,8 @@
+ ---
+ The stock of one product. `available` is what can still be sold; a
+ reservation moves units out of it into `holds`, keyed by order id, so
+-reserving twice for the same order holds the stock once.
++reserving twice for the same order holds the stock once. Whatever the
++handlers do, stock never goes negative.
+ ---
+ agent Inventory {
+ 	key sku: Sku
+@@ -68,6 +110,9 @@
+ 	store available: Cell[Int]
+ 	store holds: Map[String, Hold]
+ 
++	invariant available_non_negative:
++		available >= 0
++
+ 	on call restock(qty: Quantity) -> Effect[Int] {
+ 		let _ <- available.update((v) => v + qty)
+ 		available
+@@ -94,6 +139,18 @@
+ 		}
+ 	}
+ 
++	on call release(order: OrderId) -> Effect[Int] {
++		let held <- holds.get(orderRef(order))
++		match held {
++			None => available,
++			Some(h) => {
++				let _ <- holds.remove(orderRef(order))
++				let _ <- available.update((v) => v + h.qty)
++				available
++			},
++		}
++	}
++
+ 	on call level() -> Effect[Int] { available }
+ 
+ 	on call held() -> Effect[Int] {

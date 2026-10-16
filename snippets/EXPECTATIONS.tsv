@@ -17,3 +17,5 @@ chapter-04/non-exhaustive	fail	bynk.types.non_exhaustive_match
 chapter-04/no-arrow	fail	bynk.effect.unbound_effect
 chapter-05/query-boundary	fail	bynk.types.query_at_boundary
 chapter-05/no-ttl	fail	bynk.store.cache_ttl_required
+chapter-06/self-reference	fail	bynk.cell.self_reference
+chapter-06/restates	fail	bynk.history.restates_invariant

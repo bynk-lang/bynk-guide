@@ -1,0 +1,6 @@
+suite shop.orders
+property "stock never goes negative" {
+	for all run: History[Inventory] {
+		expect run.all((s) => s.new.available >= 0)
+	}
+}
