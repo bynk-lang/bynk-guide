@@ -49,7 +49,7 @@ the issue, as `brief.md` asks.
    idempotent; a `Query` totals the units held. The timestamp on a hold waits
    for chapter 14, which needs `Clock`. Project entries into a named record
    before `.collect()`, which is the documented idiom and also avoids
-   accuser/bynk#1977. `Log` is introduced here with a standalone snippet and
+   bynk-lang/bynk#1977. `Log` is introduced here with a standalone snippet and
    used for real in chapter 10. `Cache` and `Kv` are standalone snippets: the
    shop has no natural use for them.
    *Replaces:* KV, and ad hoc indexing.
@@ -67,7 +67,7 @@ the issue, as `brief.md` asks.
    *Replaces:* auth middleware. *Shop:* `Customer` and `Admin`.
 8. **Contexts and Service Bindings**
    `consumes`, `on call`, `Caller`; the service coordinates, the agent owns
-   state (footnote accuser/bynk#1960). `commons` for types shared between
+   state (footnote bynk-lang/bynk#1960). `commons` for types shared between
    contexts. Compensation by hand: reserve, authorise, release on failure, and
    why that is not crash-safe (a Worker that dies between `reserve` and
    `release` leaks stock; sagas are planned, see chapter 14).
@@ -89,7 +89,7 @@ the issue, as `brief.md` asks.
     a `Signature` actor with a timestamp and a replay window, a `Payment` agent
     whose state machine moves on each notice (chapter 6 again), and a `Log` of
     notices that is also the replay guard. The binding is tested with
-    `node --test`, because `bynkc test` can't reach it yet (accuser/bynk#1975).
+    `node --test`, because `bynkc test` can't reach it yet (bynk-lang/bynk#1975).
     This is where a reader leaves Bynk when it can't do what they want.
     *Replaces:* a hand-written API client, and HMAC checks. *Shop:*
     `shop.gateway`, the real processor, and `POST /webhooks/processor`.
@@ -100,14 +100,14 @@ the issue, as `brief.md` asks.
     Unit, integration and system tiers; `stub`; observation
     (`expect Cap.op called …`); end-to-end against `bynk dev`, including signed
     and forged webhooks. Teach the working forms: `expect r is Ok(v)`
-    (accuser/bynk#1979), and `by Caller("…")` when a test calls a `by c: Caller`
-    service (accuser/bynk#1978).
+    (bynk-lang/bynk#1979), and `by Caller("…")` when a test calls a `by c: Caller`
+    service (bynk-lang/bynk#1978).
     *Replaces:* vitest with miniflare, spies, and hand-wired integration tests.
 12. **Run it, ship it, debug it**
     `bynk dev`, `bynk deploy`, lock files, secrets, environments, the CI
     actions. `bynk-secrets.json` can miss reads made in provider bodies and
     adapter bindings, so `bynk deploy` won't warn that `PAYMENTS_API_KEY` is
-    unset (accuser/bynk#1976); say what to check by hand. Then a deployed Worker
+    unset (bynk-lang/bynk#1976); say what to check by hand. Then a deployed Worker
     that misbehaves: `Logger`, source maps back
     to `.bynk`, reading the emitted TypeScript, and what a `Result` error looks
     like in the Workers dashboard.
@@ -119,7 +119,7 @@ the issue, as `brief.md` asks.
 13. **Events**
     Emit and subscribe, at-least-once delivery, `Idempotency`.
     *Replaces:* hand-rolled queues and fan-out. *Shop:* the ledger. Says why the
-    full shop can't deploy yet (accuser/bynk#1961).
+    full shop can't deploy yet (bynk-lang/bynk#1961).
 14. **Time and queues**
     Cron, and queue consumers. *Shop:* each hold gains `at: Instant` from
     `Clock`, and `service sweeper from cron` releases holds older than 15
@@ -154,4 +154,4 @@ from `bynk-contracts.json` and an `X-Bynk-Caller` identity, and the hash
 changes whenever the signature does. That is an internal protocol, not an API.
 The supported seams are the other way round: put the Bynk Worker in front, or
 call its `from http` routes. Say that, don't teach the wire format, and
-footnote the interop track (accuser/bynk#1973).
+footnote the interop track (bynk-lang/bynk#1973).

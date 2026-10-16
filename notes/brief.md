@@ -76,25 +76,25 @@ uses:
 The shop works around these upstream bugs. The book teaches the working form and
 says why, rather than teaching what the compiler accepts but the runtime breaks:
 
-- **Service coordinates, agent owns state** (accuser/bynk#1960). Cross-context
+- **Service coordinates, agent owns state** (bynk-lang/bynk#1960). Cross-context
   calls are made from the service, not inside an agent handler. Present this as
   the pattern, with a note.
-- **Events and deploy** (accuser/bynk#1961). The full shop can't deploy while an
+- **Events and deploy** (bynk-lang/bynk#1961). The full shop can't deploy while an
   event crosses contexts, so deploy is taught on the two-context subset before
   events are added, and the events chapter says so.
-- **Event fan-out in the `system` test tier** (accuser/bynk#1959). Events are
+- **Event fan-out in the `system` test tier** (bynk-lang/bynk#1959). Events are
   tested end to end against `bynk dev`.
-- **An adapter's binding is out of reach of `bynkc test`** (accuser/bynk#1975).
+- **An adapter's binding is out of reach of `bynkc test`** (bynk-lang/bynk#1975).
   The binding is tested with `node --test` against fake `Fetch` and `Secrets`.
-- **The secrets manifest misses reads** (accuser/bynk#1976) in provider bodies
+- **The secrets manifest misses reads** (bynk-lang/bynk#1976) in provider bodies
   and adapter bindings, so `bynk deploy` doesn't warn about an unset payment
   key. The deploy chapter says what to check by hand.
 - **Test-only checker gaps.** `expect r == Ok(v)` is mistyped in a test case
-  (accuser/bynk#1979), so tests use `expect r is Ok(v)`. A test calling a
+  (bynk-lang/bynk#1979), so tests use `expect r is Ok(v)`. A test calling a
   `by c: Caller` service needs `by Caller("…")` or `tsc` fails
-  (accuser/bynk#1978).
+  (bynk-lang/bynk#1978).
 - **Folding collected `MapEntry`s emits an unimported type**
-  (accuser/bynk#1977). Entries are projected into a named record before
+  (bynk-lang/bynk#1977). Entries are projected into a named record before
   `.collect()`, which is the idiom anyway.
 
 ## Working principles
