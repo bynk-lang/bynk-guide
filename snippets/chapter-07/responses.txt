@@ -1,0 +1,25 @@
+$ curl -X PUT localhost:8787/stock/widget -d '{"qty":10}'
+401
+
+$ curl -X PUT localhost:8787/stock/widget -d '{"qty":10}' \
+    -H "Authorization: Bearer $ALICE"
+403
+
+$ curl -X PUT localhost:8787/stock/widget -d '{"qty":10}' \
+    -H "Authorization: Bearer $ROOT"
+200 10
+
+$ curl localhost:8787/stock/widget
+200 {"kind":"InStock"}
+
+$ curl localhost:8787/stock/widget -H "Authorization: Bearer $ALICE"
+200 {"kind":"Left","count":10}
+
+$ curl -X PUT localhost:8787/orders/o1 \
+    -H "Authorization: Bearer $ALICE" \
+    -d '{"sku":"widget","qty":3,"cents":2500}'
+201 {"id":"o1","status":"placed","owner":"alice","sku":"widget",
+    "qty":3,"cents":2500}
+
+$ curl localhost:8787/orders/o1 -H "Authorization: Bearer $BOB"
+404

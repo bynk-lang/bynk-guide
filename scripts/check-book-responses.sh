@@ -12,10 +12,19 @@
 #
 # The transcript format: a request is a `$ curl ...` line, continued with a
 # trailing backslash, targeting localhost:8787. The next line is the status, a
-# space, and the body; further indented lines continue the body, which the page
-# wraps to fit. Unwrapping strips each continuation line's indentation and joins
-# it with nothing. Requests are separated by blank lines. The command is split
+# space, and the body, or the status alone for an empty body; further indented
+# lines continue the body, which the page wraps to fit. Unwrapping strips each
+# continuation line's indentation and joins it with nothing. Requests are separated by blank lines. The command is split
 # into words by xargs, which honours the shell's quotes; it is never evaluated.
+#
+# A row may give a fourth column: arguments for `wrangler dev`, passed after
+# `--`, such as `--var AUTH_JWT_SECRET:not-a-secret` for a project whose actors
+# verify tokens. Split on spaces; no quoting.
+#
+# A transcript may have a sidecar file beside it, the same name with `.env` for
+# `.txt`: `KEY=VALUE` lines whose values replace `$KEY` and `${KEY}` in the
+# requests before they are split. It lets a page print `Bearer $ALICE` where
+# the request needs a whole signed token. The answers are not substituted.
 #
 # `bynk dev` runs on a copy (it writes .bynk/dev/ into the project) and in its
 # own process group: it starts wrangler through npx, and wrangler starts
@@ -68,10 +77,16 @@ free_port() {
     s.listen(0, "127.0.0.1", () => { console.log(s.address().port); s.close(); });'
 }
 
-# Starts `bynk dev` for $1 on port $2, logging to $3; returns once it is ready.
+# Starts `bynk dev` for $1 on port $2, logging to $3, with the wrangler
+# arguments in $4; returns once it is ready.
 start_server() {
+  local -a extra=()
+  if [ -n "${4:-}" ]; then
+    read -ra extra <<<"$4"
+    extra=(-- "${extra[@]}")
+  fi
   set -m
-  WRANGLER_SEND_METRICS=false "$BYNK" dev --base-port "$2" "$1" >"$3" 2>&1 &
+  WRANGLER_SEND_METRICS=false "$BYNK" dev --base-port "$2" "$1" "${extra[@]}" >"$3" 2>&1 &
   pgid=$!
   set +m
   for _ in $(seq 1 "$READY_TIMEOUT"); do
@@ -85,7 +100,14 @@ start_server() {
 # Replays the transcript $1 against port $2. Prints one line per mismatch.
 replay() {
   local transcript="$1" port="$2"
-  local expected="" state=gap line
+  local expected="" state=gap line key value
+  local -a vars=()
+  if [ -f "${transcript%.txt}.env" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in '' | \#*) continue ;; esac
+      vars+=("$line")
+    done <"${transcript%.txt}.env"
+  fi
   local -a requests=() answers=()
   while IFS= read -r line || [ -n "$line" ]; do
     if [ -z "$line" ]; then
@@ -133,6 +155,12 @@ replay() {
   local -a words args
   for i in "${!requests[@]}"; do
     expected="${answers[$i]}"
+    for line in "${vars[@]}"; do
+      key="${line%%=*}"
+      value="${line#*=}"
+      requests[$i]="${requests[$i]//\$\{$key\}/$value}"
+      requests[$i]="${requests[$i]//\$$key/$value}"
+    done
     if ! mapfile -d '' words < <(printf '%s' "${requests[$i]}" | xargs printf '%s\0'); then
       echo "cannot split: ${requests[$i]}"
       continue
@@ -155,7 +183,8 @@ replay() {
     body="$work/body"
     : >"$body"
     code="$(curl -sS --max-time 30 -o "$body" -w '%{http_code}' "${args[@]}" 2>&1)"
-    actual="$code $(cat "$body")"
+    actual="$code"
+    [ ! -s "$body" ] || actual+=" $(cat "$body")"
     if [ "$actual" != "$expected" ]; then
       printf '%s\n  quoted:   %s\n  answered: %s\n' "${requests[$i]}" "$expected" "$actual"
     fi
@@ -165,7 +194,7 @@ replay() {
 
 fail=0
 checked=0
-while IFS=$'\t' read -r t k p; do
+while IFS=$'\t' read -r t k p w; do
   case "$t" in '' | \#*) continue ;; esac
   [ "$k" = http ] || continue
   checked=$((checked + 1))
@@ -182,7 +211,7 @@ while IFS=$'\t' read -r t k p; do
   log="$work/dev.log"
   port="$(free_port)"
 
-  if ! start_server "$copy" "$port" "$log"; then
+  if ! start_server "$copy" "$port" "$log" "${w:-}"; then
     printf 'FAIL    %-42s %s\n' "$t" "bynk dev did not come up on port $port"
     sed 's/^/          | /' "$log"
     stop_server

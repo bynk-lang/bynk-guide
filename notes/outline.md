@@ -80,9 +80,16 @@ the issue, as `brief.md` asks.
 ## Part III: Who is calling, and who is it for
 
 7. **Actors**
-   `Visitor`, `Bearer`, an authorisation refinement (401 vs 403), and several
-   kinds of caller on one route (`User | Visitor`).
-   *Replaces:* auth middleware. *Shop:* `Customer` and `Admin`.
+   `Customer` (`Bearer`, identity `CustomerId`) and `Admin = Customer where
+   hasClaim("admin")`; `401` vs `403`; the order records its owner and
+   `shown` hides others' orders as `404`. `GET /stock/:sku` is
+   `by who: Customer | Visitor`, answering an `Availability` sum. Refusals:
+   a refinement in a sum (`bynk.actor.refinement_in_sum`), and `Visitor`
+   first (`bynk.actor.unreachable_sum_arm`). The transcript uses real tokens
+   (`responses.env`) and `--var AUTH_JWT_SECRET`. A test can't call an
+   `Admin` route (bynk-lang/bynk#2019) or a sum route (bynk-lang/bynk#2020).
+   *Replaces:* auth middleware. *Shop:* `Customer` and `Admin`, owners, and
+   the public stock lookup (bynk-lang/shop#8).
 8. **Contexts and Service Bindings**
    `consumes`, `on call`, `Caller`; the service coordinates, the agent owns
    state (footnote bynk-lang/bynk#1960). `commons` for types shared between

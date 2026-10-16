@@ -1,0 +1,48 @@
+--- a/src/shop/orders.bynk
++++ b/src/shop/orders.bynk
+@@ -239,9 +284,9 @@
+ 
+ 	on GET("/orders/:id") (
+ 		id: OrderId
+-	) -> Effect[HttpResult[OrderView]] by Visitor {
++	) -> Effect[HttpResult[OrderView]] by c: Customer {
+ 		let o <- Order(id).view()
+-		match shown(id, o) {
++		match shown(id, o, c.identity) {
+ 			None => NotFound,
+ 			Some(v) => Ok(v),
+ 		}
+@@ -249,9 +294,9 @@
+ 
+ 	on POST("/orders/:id/cancel") (
+ 		id: OrderId
+-	) -> Effect[HttpResult[OrderView]] by Visitor {
++	) -> Effect[HttpResult[OrderView]] by c: Customer {
+ 		let o <- Order(id).view()
+-		match shown(id, o) {
++		match shown(id, o, c.identity) {
+ 			None => NotFound,
+ 			Some(v) => {
+ 				let r <- Order(id).cancel()
+@@ -277,15 +323,18 @@
+ 	on PUT("/stock/:sku") (
+ 		sku: Sku,
+ 		body: StockRequest
+-	) -> Effect[HttpResult[Int]] by Visitor {
++	) -> Effect[HttpResult[Int]] by a: Admin {
+ 		let level <- Inventory(sku).restock(body.qty)
+ 		Ok(level)
+ 	}
+ 
+ 	on GET("/stock/:sku") (
+ 		sku: Sku
+-	) -> Effect[HttpResult[Int]] by Visitor {
++	) -> Effect[HttpResult[Availability]] by who: Customer | Visitor {
+ 		let level <- Inventory(sku).level()
+-		Ok(level)
++		match who {
++			Customer(_) => Ok(Left(level)),
++			Visitor => if level > 0 { Ok(InStock) } else { Ok(SoldOut) },
++		}
+ 	}
+ }
