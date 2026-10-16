@@ -46,6 +46,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        # `bynk dev` starts wrangler, which needs Node 22 or later; the
+        # runner's default is older.
+        with:
+          node-version: 22
       - uses: bynk-lang/setup-bynk@5764a6e9a326badfc9eb47086b8837aace7a5c2a # v1.0.3
         id: bynk
         with:
@@ -76,6 +81,25 @@ jobs:
         env:
           BYNKC: ${{ steps.bynk.outputs.bindir }}/bynkc
           TSC: npx --yes --package typescript@5.9.3 tsc
+      - name: Run the manuscript's snippet tests
+        # `bynkc check` type-checks tests/ but nothing else runs them. This
+        # runs every tested project's suite and diffs each quoted run listed in
+        # snippets/TRANSCRIPTS.tsv. `bynkc test` finds tsc on PATH, so it gets
+        # the same pinned TypeScript the emit gate uses.
+        if: ${{ !cancelled() && steps.bynk.conclusion == 'success' }}
+        run: |
+          npm install --global --no-fund --no-audit typescript@5.9.3
+          ./scripts/check-book-tests.sh
+        env:
+          BYNKC: ${{ steps.bynk.outputs.bindir }}/bynkc
+      - name: Replay the manuscript's quoted responses
+        # Serves each project an HTTP transcript in snippets/TRANSCRIPTS.tsv
+        # quotes with `bynk dev`, replays the requests and compares status and
+        # body. The bodies are generated code, so a release can change them.
+        if: ${{ !cancelled() && steps.bynk.conclusion == 'success' }}
+        run: ./scripts/check-book-responses.sh
+        env:
+          BYNK: ${{ steps.bynk.outputs.bindir }}/bynk
       - name: Report the drift
         if: ${{ failure() && inputs.version != '' }}
         env:
@@ -84,7 +108,8 @@ jobs:
           {
             echo "### The manuscript's evidence no longer matches Bynk ${INSTALLED#v}"
             echo
-            echo "A diagnostic changed, or the formatter did. Revise the affected"
-            echo "chapter and snippet, then bump the pin (\`BYNK_VERSION\` in"
-            echo "\`.github/workflows/snippets.yml\`) to this release."
+            echo "A diagnostic changed, or the formatter, a test run or a quoted"
+            echo "response did. Revise the affected chapter and snippet, then bump"
+            echo "the pin (\`BYNK_VERSION\` in \`.github/workflows/snippets.yml\`)"
+            echo "to this release."
           } >> "$GITHUB_STEP_SUMMARY"
