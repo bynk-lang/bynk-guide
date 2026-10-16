@@ -2,3 +2,4 @@
 # Columns (tab-separated), paths relative to snippets/:
 #   <output .diff>	<from project>	<to project>	<file in project>	<hunks>
 # <hunks> is "all" or a comma-separated list of 1-based hunk numbers.
+chapter-03/orders.diff	chapter-02/shop	chapter-03/shop	src/shop/orders.bynk	all

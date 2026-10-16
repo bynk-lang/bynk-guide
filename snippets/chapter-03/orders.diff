@@ -1,0 +1,45 @@
+--- a/src/shop/orders.bynk
++++ b/src/shop/orders.bynk
+@@ -1,15 +1,41 @@
+ context shop.orders
+ 
+ uses shop.values
++consumes bynk { Logger }
+ 
+ ---
+ What the customer is buying: one sku, how many, and the agreed price.
+ ---
+ type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+ 
++---
++Why an order was refused. `TooLarge` carries the reason the total was
++not a price the shop can charge.
++---
++type OrderError = | TooLarge(reason: ValidationError)
++embeds ValidationError as TooLarge
++
++---
++What the order comes to. The total must itself be a `Cents`, so an
++order over 100,000.00 is refused before anything else happens.
++---
++fn total(line: OrderLine) -> Result[Cents, OrderError] {
++	Ok(Cents.of(line.qty * line.cents)?)
++}
++
+ service api from http {
+ 	on PUT("/orders/:id") (
+ 		id: OrderId,
+ 		body: OrderLine
+-	) -> Effect[HttpResult[OrderLine]] by Visitor { Created(body) }
++	) -> Effect[HttpResult[OrderLine]] by Visitor given Logger {
++		match total(body) {
++			Err(TooLarge(_)) => UnprocessableEntity(
++				"the order comes to more than 100,000.00"
++			),
++			Ok(t) => {
++				~> Logger.info("order for \(t) cents")
++				Created(body)
++			},
++		}
++	}
+ }

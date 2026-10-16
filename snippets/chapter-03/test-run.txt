@@ -1,0 +1,9 @@
+Running tests...
+
+shop.orders:
+  ✓ a line that fits its types is admitted
+  ✓ a zero quantity is refused
+  ✓ an order's total is quantity times price
+  ✓ an order over 100,000.00 is too large
+
+4 passed, 0 failed.

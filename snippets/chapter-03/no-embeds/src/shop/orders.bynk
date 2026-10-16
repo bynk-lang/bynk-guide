@@ -1,0 +1,11 @@
+context shop.orders
+
+uses shop.values
+
+type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+
+type OrderError = | TooLarge(reason: ValidationError)
+
+fn total(line: OrderLine) -> Result[Cents, OrderError] {
+	Ok(Cents.of(line.qty * line.cents)?)
+}

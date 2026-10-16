@@ -8,7 +8,7 @@ match `bynk-lang/shop`; a script that diffs them is a follow-up.
 | -- | -- | -- | -- |
 | 1 | `chapter-01/hello` (the `bynk new` scaffold), `greet`, `dollar`, `no-status` and `one-armed-if` (refusals), `conventional*`, `emitted/` (not gated), `dev-output.txt` (not gated); transcripts `greet-responses.txt`, `dollar-responses.txt` | | introduction/install; guides/projects-build-and-deployment/start-a-project, layout, run-locally, cloudflare-workers, why-compile-to-typescript |
 | 2 | `chapter-02/shop` (written, gated), `minted` and `empty-sku` (refusals), `conventional*.ts` | `values.bynk`, `orders.bynk` (`OrderLine`) | guides/type-system, type-system/decode-json |
-| 3 | `chapter-03/*` | `orders.bynk` handlers | guides/type-system/result-and-optionals, effects-and-capabilities/synchronous-and-asynchronous-sends |
+| 3 | `chapter-03/shop`, `no-embeds` and `question-in-handler` (refusals), `conventional.ts`, `orders.diff`, `emitted/send.ts`; transcripts `test-run.txt`, `responses.txt` | `orders.bynk` (`OrderError`, `total`, the `PUT` check) | guides/type-system/result-and-optionals, effects-and-capabilities/synchronous-and-asynchronous-sends |
 | 4 | `chapter-04/*` | `inventory.bynk` | guides/agents-and-state |
 | 5 | `chapter-05/*`, plus standalone `Log`, `Cache` and `Kv` snippets | `inventory.bynk` (`holds`, without `at`) | guides/agents-and-state; reference/agents |
 | 6 | `chapter-06/*` | `orders.bynk` (Order), `inventory.bynk` (invariant) | guides/agents-and-state/state-machine, understand-invariants; reference/testing (history properties) |

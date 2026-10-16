@@ -1,0 +1,22 @@
+context shop.orders
+
+uses shop.values
+
+type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+
+type OrderError = | TooLarge(reason: ValidationError)
+embeds ValidationError as TooLarge
+
+fn total(line: OrderLine) -> Result[Cents, OrderError] {
+	Ok(Cents.of(line.qty * line.cents)?)
+}
+
+service api from http {
+	on PUT("/orders/:id") (
+		id: OrderId,
+		body: OrderLine
+	) -> Effect[HttpResult[OrderLine]] by v: Visitor {
+		let t = total(body)?
+		Created(body)
+	}
+}
