@@ -6,7 +6,7 @@
 # canary/repos.json (kind `book`), and the canary GitHub App is installed on it.
 # See https://github.com/bynk-lang/.github/blob/main/canary/README.md
 #
-# `snippets` runs both gates (snippets.yml) at the dispatched version. Its
+# `snippets` runs every snippet and transcript gate (snippets.yml) at the dispatched version. Its
 # result is passed to canary.yml as `upstream-result`; canary.yml runs no
 # checks of its own here (`ci: false`), but resolves the version, records it,
 # and opens, updates or closes the one `canary` issue.

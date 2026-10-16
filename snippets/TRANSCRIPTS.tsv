@@ -1,5 +1,6 @@
 # Transcripts the chapters quote from running code.
-# Columns (tab-separated): <transcript under snippets/>	<test|http>	<project under snippets/>
+# Columns (tab-separated): <transcript under snippets/>	<test|http|emit>	<project under snippets/>
+# and, for emit only: 	<target>	<path under out/>[	<from>[	<to>]]
 #
 # test: the `bynkc test .` output of the project, from its `Running tests...`
 # line to the end. scripts/check-book-tests.sh regenerates and diffs it.
@@ -9,7 +10,15 @@
 # nothing, so wrap only where the JSON has no space. Requests are separated by a
 # blank line and must target localhost:8787. scripts/check-book-responses.sh
 # serves the project, replays each request and compares.
+# emit: a file `bynkc compile . --output out --target <target>` writes, or part
+# of it. With only a path, the whole file, byte for byte. With <from>, every line
+# containing it; with <to> as well, the first line containing <from> through the
+# next line containing <to>. Matches are fixed strings; keep spaces off their
+# ends, where an editor would strip them. Selected lines lose the indentation
+# they share. scripts/check-book-emitted.sh compiles the project and diffs.
 chapter-02/test-run.txt	test	chapter-02/shop
 chapter-02/responses.txt	http	chapter-02/shop
 chapter-01/greet-responses.txt	http	chapter-01/greet
 chapter-01/dollar-responses.txt	http	chapter-01/dollar
+chapter-01/emitted/wrangler.toml	emit	chapter-01/greet	workers	workers/hello/wrangler.toml
+chapter-01/emitted/greeting.ts	emit	chapter-01/greet	workers	workers/hello/handlers.ts	Hello,
