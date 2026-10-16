@@ -49,21 +49,22 @@ the issue, as `brief.md` asks.
    *Replaces:* a Durable Object class and its storage calls.
    *Shop:* `Order` (open once, view) and `GET /orders/:id`.
 5. **Other kinds of storage**
-   `Map`, `Query[T]`, `Log` with `@retain`, `Cache` with `@ttl`, and `Kv`.
-   Light: these are 1.x surface, not Foundations.
-   *Shop:* `Inventory` arrives: `available: Cell[Int]` changed with `update`
-   (an effect, awaited with `let _ <-`), and its reservations as
-   `holds: Map[String, Hold]`,
-   keyed by order id, so reserving twice holds the stock once and releasing is
-   idempotent; a `Query` totals the units held. The timestamp on a hold waits
-   for chapter 14, which needs `Clock`. Project entries into a named record
-   before `.collect()`, which is the documented idiom and also avoids
-   bynk-lang/bynk#1977. `Log` is introduced here with a standalone snippet and
-   used for real in chapter 10. `Cache` and `Kv` are standalone snippets: the
-   shop has no natural use for them.
-   *Replaces:* KV, and ad hoc indexing.
+   `Inventory` arrives as a second agent: `available: Cell[Int]` changed with
+   `update` (an effect, awaited with `let _ <-`), `holds: Map[String, Hold]`
+   keyed by order id as text (`orderRef`, until bynk-lang/bynk#1982), so
+   reserving twice holds once, and `held` totals the holds with a `Query`.
+   `StockError` is the shop's first `enum`. Then a standalone context for
+   `Log` with `@retain`, `Cache` with `@ttl`, and `Kv`. Refusals: a `Query`
+   returned from a handler (`bynk.types.query_at_boundary`), and a `Cache`
+   without `@ttl` (`bynk.store.cache_ttl_required`). Light: these are 1.x
+   surface, not Foundations.
+   *Replaces:* storage key prefixes, transactions by hand, and KV.
+   *Shop:* `Inventory`, `PUT`/`GET /stock/:sku`, and reserving on placement.
+   The order is opened before stock is reserved, so a refusal for stock leaves
+   it behind; the transcript shows it, and chapter 6 fixes it with a status.
+   The timestamp on a hold waits for chapter 14, which needs `Clock`.
 6. **State with a lifecycle**
-   State machines (`Status`, the first `enum`), initial variants, invariants. A history property
+   State machines (`Status`), initial variants, invariants. A history property
    (`for all run: History[Order]`) proves the machine.
    *Replaces:* status strings and defensive checks. *Shop:* `Order`, and the
    stock invariant.

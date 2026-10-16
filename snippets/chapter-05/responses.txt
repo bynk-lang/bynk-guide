@@ -1,0 +1,19 @@
+$ curl -X PUT localhost:8787/stock/widget -d '{"qty":10}'
+200 10
+
+$ curl -X PUT localhost:8787/orders/o1 \
+    -d '{"sku":"widget","qty":3,"cents":2500}'
+201 {"sku":"widget","qty":3,"cents":2500}
+
+$ curl localhost:8787/stock/widget
+200 7
+
+$ curl -X PUT localhost:8787/orders/o2 \
+    -d '{"sku":"widget","qty":100,"cents":100}'
+409 {"error":"out of stock"}
+
+$ curl localhost:8787/stock/widget
+200 7
+
+$ curl localhost:8787/orders/o2
+200 {"sku":"widget","qty":100,"cents":100}

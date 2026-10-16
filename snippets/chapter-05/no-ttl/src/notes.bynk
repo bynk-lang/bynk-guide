@@ -1,0 +1,9 @@
+context notes
+
+agent Page {
+	key path: String
+
+	store rendered: Cache[String, String]
+
+	on call ping() -> Effect[Int] { 0 }
+}

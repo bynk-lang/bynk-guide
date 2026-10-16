@@ -1,0 +1,105 @@
+--- a/src/shop/orders.bynk
++++ b/src/shop/orders.bynk
+@@ -47,6 +47,62 @@
+ 	on call view() -> Effect[Option[OrderLine]] { line }
+ }
+ 
++---
++Why stock couldn't be reserved.
++---
++type StockError = enum { Insufficient }
++
++---
++Stock set aside for one order.
++---
++type Hold = { order: OrderId, qty: Int }
++
++---
++The stock of one product. `available` is what can still be sold; a
++reservation moves units out of it into `holds`, keyed by order id, so
++reserving twice for the same order holds the stock once.
++---
++agent Inventory {
++	key sku: Sku
++
++	store available: Cell[Int]
++	store holds: Map[String, Hold]
++
++	on call restock(qty: Quantity) -> Effect[Int] {
++		let _ <- available.update((v) => v + qty)
++		available
++	}
++
++	on call reserve(
++		order: OrderId,
++		qty: Quantity
++	) -> Effect[Result[(), StockError]] {
++		let already <- holds.contains(orderRef(order))
++		if already {
++			Ok(())
++		} else {
++			if available < qty {
++				Err(Insufficient)
++			} else {
++				let _ <- available.update((v) => v - qty)
++				let _ <- holds.put(orderRef(order), Hold {
++					order: order,
++					qty: qty,
++				})
++				Ok(())
++			}
++		}
++	}
++
++	on call level() -> Effect[Int] { available }
++
++	on call held() -> Effect[Int] {
++		holds.values.fold(0, (n, h) => n + h.qty)
++	}
++}
++
++type StockRequest = { qty: Quantity }
++
+ service api from http {
+ 	on PUT("/orders/:id") (
+ 		id: OrderId,
+@@ -63,8 +119,17 @@
+ 						"that order has already been placed"
+ 					),
+ 					Ok(_) => {
+-						~> Logger.info("order for \(t) cents")
+-						Created(body)
++						let held <- Inventory(body.sku).reserve(
++							id,
++							body.qty
++						)
++						match held {
++							Err(Insufficient) => Conflict("out of stock"),
++							Ok(_) => {
++								~> Logger.info("order for \(t) cents")
++								Created(body)
++							},
++						}
+ 					},
+ 				}
+ 			},
+@@ -80,4 +145,19 @@
+ 			Some(l) => Ok(l),
+ 		}
+ 	}
++
++	on PUT("/stock/:sku") (
++		sku: Sku,
++		body: StockRequest
++	) -> Effect[HttpResult[Int]] by Visitor {
++		let level <- Inventory(sku).restock(body.qty)
++		Ok(level)
++	}
++
++	on GET("/stock/:sku") (
++		sku: Sku
++	) -> Effect[HttpResult[Int]] by Visitor {
++		let level <- Inventory(sku).level()
++		Ok(level)
++	}
+ }

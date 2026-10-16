@@ -29,3 +29,4 @@
 #part-page(2, [State])
 
 #include "chapters/04-an-agent-is-a-durable-object.typ"
+#include "chapters/05-other-kinds-of-storage.typ"

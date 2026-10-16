@@ -15,3 +15,5 @@ chapter-03/no-embeds	fail	bynk.types.question_error_mismatch
 chapter-03/question-in-handler	fail	bynk.types.question_outside_result
 chapter-04/non-exhaustive	fail	bynk.types.non_exhaustive_match
 chapter-04/no-arrow	fail	bynk.effect.unbound_effect
+chapter-05/query-boundary	fail	bynk.types.query_at_boundary
+chapter-05/no-ttl	fail	bynk.store.cache_ttl_required
