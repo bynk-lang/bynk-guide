@@ -1,0 +1,291 @@
+context shop.orders
+
+uses shop.values
+consumes bynk { Logger }
+
+---
+What the customer is buying: one sku, how many, and the agreed price.
+---
+type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+
+---
+Why an order was refused. `TooLarge` carries the reason the total was
+not a price the shop can charge; `AlreadyDecided` means the id has been
+used; `NotPlaced` means only a placed order can be cancelled.
+---
+type OrderError = | TooLarge(reason: ValidationError)
+| AlreadyDecided
+| NotPlaced
+embeds ValidationError as TooLarge
+
+---
+What the order comes to. The total must itself be a `Cents`, so an
+order over 100,000.00 is refused before anything else happens.
+---
+fn total(line: OrderLine) -> Result[Cents, OrderError] {
+	Ok(Cents.of(line.qty * line.cents)?)
+}
+
+---
+Where an order is in its life. A new order is `Pending`; `open` moves it
+to `Opened` while its stock is reserved, and exactly one of `confirm` or
+`reject` then decides it. Only a `Placed` order can be cancelled.
+---
+type Status = enum { Pending, Opened, Placed, Rejected, Cancelled }
+
+---
+An order as its agent holds it. `line` is `None` until it is opened.
+---
+type Snapshot = { status: Status, line: Option[OrderLine] }
+
+---
+One order, keyed by the id the customer chose. The agent owns the order's
+state and the rules for moving it. Rejected and cancelled are final.
+---
+agent Order {
+	key id: OrderId
+
+	store status: Cell[Status] = Pending
+	store line: Cell[Option[OrderLine]]
+
+	transition rejected_is_final:
+		old.status is Rejected implies new.status is Rejected
+
+	transition cancelled_is_final:
+		old.status is Cancelled implies new.status is Cancelled
+
+	on call open(wanted: OrderLine) -> Effect[Result[(), OrderError]] {
+		match status {
+			Pending => {
+				line := Some(wanted)
+				status := Opened
+				Ok(())
+			},
+			_ => Err(AlreadyDecided),
+		}
+	}
+
+	on call confirm() -> Effect[()] {
+		status := Placed
+	}
+
+	on call reject() -> Effect[()] {
+		status := Rejected
+	}
+
+	on call cancel() -> Effect[Result[(), OrderError]] {
+		match status {
+			Placed => {
+				status := Cancelled
+				Ok(())
+			},
+			_ => Err(NotPlaced),
+		}
+	}
+
+	on call view() -> Effect[Snapshot] {
+		Snapshot { status: status, line: line }
+	}
+}
+
+---
+Why stock couldn't be reserved.
+---
+type StockError = enum { Insufficient }
+
+---
+Stock set aside for one order.
+---
+type Hold = { order: OrderId, qty: Int }
+
+---
+The stock of one product. `available` is what can still be sold; a
+reservation moves units out of it into `holds`, keyed by order id, so
+reserving twice for the same order holds the stock once. Whatever the
+handlers do, stock never goes negative.
+---
+agent Inventory {
+	key sku: Sku
+
+	store available: Cell[Int]
+	store holds: Map[String, Hold]
+
+	invariant available_non_negative:
+		available >= 0
+
+	on call restock(qty: Quantity) -> Effect[Int] {
+		let _ <- available.update((v) => v + qty)
+		available
+	}
+
+	on call reserve(
+		order: OrderId,
+		qty: Quantity
+	) -> Effect[Result[(), StockError]] {
+		let already <- holds.contains(orderRef(order))
+		if already {
+			Ok(())
+		} else {
+			if available < qty {
+				Err(Insufficient)
+			} else {
+				available := available - qty
+				let _ <- holds.put(orderRef(order), Hold {
+					order: order,
+					qty: qty,
+				})
+				Ok(())
+			}
+		}
+	}
+
+	on call release(order: OrderId) -> Effect[Int] {
+		let held <- holds.get(orderRef(order))
+		match held {
+			None => available,
+			Some(h) => {
+				let _ <- holds.remove(orderRef(order))
+				let _ <- available.update((v) => v + h.qty)
+				available
+			},
+		}
+	}
+
+	on call level() -> Effect[Int] { available }
+
+	on call held() -> Effect[Int] {
+		holds.values.fold(0, (n, h) => n + h.qty)
+	}
+}
+
+type StockRequest = { qty: Quantity }
+
+---
+An order as the customer sees it.
+---
+type OrderView = {
+	id: OrderId,
+	status: String,
+	sku: Sku,
+	qty: Quantity,
+	cents: Cents,
+}
+
+fn name(s: Status) -> String {
+	match s {
+		Pending => "pending",
+		Opened => "opened",
+		Placed => "placed",
+		Rejected => "rejected",
+		Cancelled => "cancelled",
+	}
+}
+
+fn shown(id: OrderId, o: Snapshot) -> Option[OrderView] {
+	match o.line {
+		None => None,
+		Some(l) => Some(OrderView {
+			id: id,
+			status: name(o.status),
+			sku: l.sku,
+			qty: l.qty,
+			cents: l.cents,
+		}),
+	}
+}
+
+service api from http {
+	on PUT("/orders/:id") (
+		id: OrderId,
+		body: OrderLine
+	) -> Effect[HttpResult[OrderView]] by Visitor given Logger {
+		match total(body) {
+			Err(_) => UnprocessableEntity(
+				"the order comes to more than 100,000.00"
+			),
+			Ok(t) => {
+				let opened <- Order(id).open(body)
+				match opened {
+					Err(_) => Conflict(
+						"that order has already been placed"
+					),
+					Ok(_) => {
+						let held <- Inventory(body.sku).reserve(
+							id,
+							body.qty
+						)
+						match held {
+							Err(Insufficient) => {
+								let _ <- Order(id).reject()
+								Conflict("out of stock")
+							},
+							Ok(_) => {
+								let _ <- Order(id).confirm()
+								~> Logger.info("order for \(t) cents")
+								Created(OrderView {
+									id: id,
+									status: "placed",
+									sku: body.sku,
+									qty: body.qty,
+									cents: body.cents,
+								})
+							},
+						}
+					},
+				}
+			},
+		}
+	}
+
+	on GET("/orders/:id") (
+		id: OrderId
+	) -> Effect[HttpResult[OrderView]] by Visitor {
+		let o <- Order(id).view()
+		match shown(id, o) {
+			None => NotFound,
+			Some(v) => Ok(v),
+		}
+	}
+
+	on POST("/orders/:id/cancel") (
+		id: OrderId
+	) -> Effect[HttpResult[OrderView]] by Visitor {
+		let o <- Order(id).view()
+		match shown(id, o) {
+			None => NotFound,
+			Some(v) => {
+				let r <- Order(id).cancel()
+				match r {
+					Err(_) => Conflict(
+						"only a placed order can be cancelled"
+					),
+					Ok(_) => {
+						let _ <- Inventory(v.sku).release(id)
+						Ok(OrderView {
+							id: id,
+							status: "cancelled",
+							sku: v.sku,
+							qty: v.qty,
+							cents: v.cents,
+						})
+					},
+				}
+			},
+		}
+	}
+
+	on PUT("/stock/:sku") (
+		sku: Sku,
+		body: StockRequest
+	) -> Effect[HttpResult[Int]] by Visitor {
+		let level <- Inventory(sku).restock(body.qty)
+		Ok(level)
+	}
+
+	on GET("/stock/:sku") (
+		sku: Sku
+	) -> Effect[HttpResult[Int]] by Visitor {
+		let level <- Inventory(sku).level()
+		Ok(level)
+	}
+}

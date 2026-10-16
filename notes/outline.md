@@ -64,10 +64,18 @@ the issue, as `brief.md` asks.
    it behind; the transcript shows it, and chapter 6 fixes it with a status.
    The timestamp on a hold waits for chapter 14, which needs `Clock`.
 6. **State with a lifecycle**
-   State machines (`Status`), initial variants, invariants. A history property
-   (`for all run: History[Order]`) proves the machine.
-   *Replaces:* status strings and defensive checks. *Shop:* `Order`, and the
-   stock invariant.
+   `Status` with an initial variant, a guarded `match` per handler, and two
+   `transition`s that make rejected and cancelled final. `Inventory` gains
+   `invariant available_non_negative` and `release`. A history property
+   (`for all run: History[Order]`) checks that only a placed order is
+   cancelled, with an illustrative failing run (a shrunk counterexample).
+   Refusals: `:=` reading its own cell (`bynk.cell.self_reference`), and a
+   history property that restates an invariant
+   (`bynk.history.restates_invariant`; a restated transition isn't caught yet,
+   bynk-lang/bynk#2018).
+   *Replaces:* status strings and defensive checks. *Shop:* `Order`'s
+   lifecycle, rejecting on insufficient stock, `POST /orders/:id/cancel`, and
+   the stock invariant (bynk-lang/shop#7 adds the transitions to the shop).
 
 ## Part III: Who is calling, and who is it for
 

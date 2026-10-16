@@ -1,0 +1,7 @@
+# Intentionally rejected source for chapter 6: a history property that restates an invariant.
+[project]
+name = "shop"
+version = "0.1.0"
+
+[fmt]
+max_line_width = 74

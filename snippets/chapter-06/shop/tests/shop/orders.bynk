@@ -1,0 +1,111 @@
+suite shop.orders
+case "a line that fits its types is admitted" {
+	let raw = "{\"sku\":\"widget\",\"qty\":3,\"cents\":2500}"
+	expect Json.decode[OrderLine](raw) is Ok(_)
+}
+
+case "a zero quantity is refused" {
+	let raw = "{\"sku\":\"widget\",\"qty\":0,\"cents\":2500}"
+	expect Json.decode[OrderLine](raw) is Err(_)
+}
+
+case "an order's total is quantity times price" {
+	let line = OrderLine { sku: skuFrom("widget"), qty: 3, cents: 2500 }
+	expect total(line) is Ok(_)
+}
+
+case "an order over 100,000.00 is too large" {
+	let line = OrderLine {
+		sku: skuFrom("widget"),
+		qty: 1000,
+		cents: 20000,
+	}
+	expect total(line) is Err(TooLarge(_))
+}
+
+case "a fresh order is pending, with no line" {
+	let v <- Order(orderIdFrom("o1")).view()
+	expect v.status == Pending
+	expect v.line is None
+}
+
+case "an order is opened once" {
+	let id = orderIdFrom("o2")
+	let line = OrderLine { sku: skuFrom("widget"), qty: 3, cents: 2500 }
+	let first <- Order(id).open(line)
+	expect first is Ok(_)
+	let again <- Order(id).open(line)
+	expect again is Err(AlreadyDecided)
+	let v <- Order(id).view()
+	expect v.status == Opened
+}
+
+case "restocking adds to what is available" {
+	let sku = skuFrom("w1")
+	let level <- Inventory(sku).restock(10)
+	expect level == 10
+}
+
+case "a reservation holds stock for its order, once" {
+	let sku = skuFrom("w2")
+	let order = orderIdFrom("o3")
+	let _ <- Inventory(sku).restock(10)
+	let first <- Inventory(sku).reserve(order, 3)
+	expect first is Ok(_)
+	let again <- Inventory(sku).reserve(order, 3)
+	expect again is Ok(_)
+	let left <- Inventory(sku).level()
+	expect left == 7
+	let held <- Inventory(sku).held()
+	expect held == 3
+}
+
+case "more than is available is refused, and takes nothing" {
+	let sku = skuFrom("w3")
+	let _ <- Inventory(sku).restock(2)
+	let r <- Inventory(sku).reserve(orderIdFrom("o4"), 3)
+	expect r is Err(Insufficient)
+	let left <- Inventory(sku).level()
+	expect left == 2
+}
+
+case "a confirmed order is placed, and can be cancelled once" {
+	let id = orderIdFrom("o5")
+	let line = OrderLine { sku: skuFrom("widget"), qty: 1, cents: 100 }
+	let _ <- Order(id).open(line)
+	let _ <- Order(id).confirm()
+	let first <- Order(id).cancel()
+	expect first is Ok(_)
+	let second <- Order(id).cancel()
+	expect second is Err(NotPlaced)
+}
+
+case "a rejected order cannot be cancelled" {
+	let id = orderIdFrom("o6")
+	let line = OrderLine { sku: skuFrom("widget"), qty: 1, cents: 100 }
+	let _ <- Order(id).open(line)
+	let _ <- Order(id).reject()
+	let r <- Order(id).cancel()
+	expect r is Err(NotPlaced)
+	let v <- Order(id).view()
+	expect v.status == Rejected
+}
+
+case "releasing a hold puts its stock back, once" {
+	let sku = skuFrom("w4")
+	let order = orderIdFrom("o7")
+	let _ <- Inventory(sku).restock(10)
+	let _ <- Inventory(sku).reserve(order, 4)
+	let first <- Inventory(sku).release(order)
+	expect first == 10
+	let second <- Inventory(sku).release(order)
+	expect second == 10
+}
+
+property "an order is only cancelled after it was placed" {
+	for all run: History[Order] {
+		expect run.all((s) => (s.new.status is Cancelled
+			&& !(s.old.status is Cancelled))
+			implies s.old.status is Placed)
+	}
+}

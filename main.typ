@@ -30,3 +30,4 @@
 
 #include "chapters/04-an-agent-is-a-durable-object.typ"
 #include "chapters/05-other-kinds-of-storage.typ"
+#include "chapters/06-state-with-a-lifecycle.typ"
