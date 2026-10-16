@@ -1,0 +1,13 @@
+# Transcripts the chapters quote from running code.
+# Columns (tab-separated): <transcript under snippets/>	<test|http>	<project under snippets/>
+#
+# test: the `bynkc test .` output of the project, from its `Running tests...`
+# line to the end. scripts/check-book-tests.sh regenerates and diffs it.
+# http: `curl` requests against `bynk dev` serving the project, each followed by
+# the status and body it answers with. A body may wrap onto indented
+# continuation lines; the gate strips each one's indentation and joins them with
+# nothing, so wrap only where the JSON has no space. Requests are separated by a
+# blank line and must target localhost:8787. scripts/check-book-responses.sh
+# serves the project, replays each request and compares.
+chapter-02/test-run.txt	test	chapter-02/shop
+chapter-02/responses.txt	http	chapter-02/shop

@@ -45,18 +45,23 @@ newest. A `v*` tag publishes it as a GitHub release.
 
 ## Keeping the listings true
 
-Every listing is a project under `snippets/` held by three gates:
+Every listing is a project under `snippets/` held by three gates, and what
+the chapters quote from running it by two more:
 
 ```sh
 ./scripts/check-book-snippets.sh   # bynkc check: clean, or the exact refusal quoted
 ./scripts/check-book-format.sh     # bynkc fmt --check
 ./scripts/check-book-emit.sh       # build, then tsc --strict on the emitted TypeScript
+./scripts/check-book-tests.sh      # bynkc test: every case passes, quoted runs match
+./scripts/check-book-responses.sh  # bynk dev: quoted HTTP responses match
 ```
 
-They use whichever `bynkc` is on `PATH`; CI installs the pinned release with
+They use whichever `bynkc` (and `bynk`) is on `PATH`; CI installs the pinned release with
 [`setup-bynk`](https://github.com/bynk-lang/setup-bynk). Non-clean expectations
-are in `snippets/EXPECTATIONS.tsv`; known format and build failures are ratchets
-in `snippets/FORMAT-BASELINE` and `snippets/EMIT-BASELINE` that can only shrink.
+are in `snippets/EXPECTATIONS.tsv`, and each quoted transcript is listed with
+its project in `snippets/TRANSCRIPTS.tsv`; known format and build failures are
+ratchets in `snippets/FORMAT-BASELINE` and `snippets/EMIT-BASELINE` that can
+only shrink.
 Chapters that print a chapter-to-chapter diff generate it with
 `./scripts/make-book-diffs.sh`.
 
