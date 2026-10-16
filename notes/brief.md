@@ -70,6 +70,11 @@ uses:
 - The org canary re-runs the gates against every new release and opens a
   `canary` issue when a chapter stops being true. A deliberate revision, and a
   bump of the pin, then closes it.
+- **Planned bump.** At 0.330.4 a deployed context answers its internal
+  services on every route, with any claimed caller (chapter 8). When a release
+  includes per-edge call signing (bynk-lang/bynk#2012), move the pin to it and
+  revise chapter 8's warning, its note on running beside an existing Worker,
+  chapter 12's deploy steps, and the shop's README.
 
 ## Teaching around the open bugs
 
