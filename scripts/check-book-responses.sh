@@ -11,7 +11,8 @@
 # and compares the status and body exactly.
 #
 # The transcript format: a request is a `$ curl ...` line, continued with a
-# trailing backslash, targeting localhost:8787. The next line is the status, a
+# trailing backslash, targeting localhost:8787 (or, for a project with several
+# contexts, the next ports up, one per context in the order of their names). The next line is the status, a
 # space, and the body, or the status alone for an empty body; further indented
 # lines continue the body, which the page wraps to fit. Unwrapping strips each
 # continuation line's indentation and joins it with nothing. Requests are separated by blank lines. The command is split
@@ -85,12 +86,25 @@ start_server() {
     read -ra extra <<<"$4"
     extra=(-- "${extra[@]}")
   fi
+  # Several contexts each start a wrangler inspector, and without --inspect
+  # they collide on 9229 and fail to start (bynk-lang/bynk#1954).
+  local inspect
+  inspect="$(free_port)"
   set -m
-  WRANGLER_SEND_METRICS=false "$BYNK" dev --base-port "$2" "$1" "${extra[@]}" >"$3" 2>&1 &
+  WRANGLER_SEND_METRICS=false "$BYNK" dev --base-port "$2" \
+    --inspect --inspect-port "$inspect" "$1" "${extra[@]}" >"$3" 2>&1 &
   pgid=$!
   set +m
+  local n want
   for _ in $(seq 1 "$READY_TIMEOUT"); do
-    grep -qF "Ready on http://localhost:$2" "$3" && return 0
+    want="$(sed -n 's/^bynk dev: serving \([0-9]*\) context.*/\1/p' "$3" | head -1)"
+    n="$(grep -c 'Ready on http://localhost:' "$3")"
+    if [ -n "$want" ] && [ "$n" -ge "$want" ]; then
+      # A Service Binding can refuse its first call until the binding has
+      # connected; give a multi-context project a moment to settle.
+      [ "$want" -le 1 ] || sleep 3
+      return 0
+    fi
     kill -0 "$pgid" 2>/dev/null || return 1
     sleep 1
   done
@@ -171,10 +185,14 @@ replay() {
     fi
     args=()
     for word in "${words[@]:1}"; do
-      case "$word" in
-      "$QUOTED_HOST"*) args+=("127.0.0.1:$port${word#"$QUOTED_HOST"}") ;;
-      *) args+=("$word") ;;
-      esac
+      # A project with several contexts serves them on consecutive ports from
+      # 8787, in the order of their names; keep each request's offset.
+      if [[ "$word" =~ ^localhost:([0-9]+)(.*)$ ]] &&
+        [ "${BASH_REMATCH[1]}" -ge 8787 ] && [ "${BASH_REMATCH[1]}" -lt 8800 ]; then
+        args+=("127.0.0.1:$((port + BASH_REMATCH[1] - 8787))${BASH_REMATCH[2]}")
+      else
+        args+=("$word")
+      fi
     done
     if [ "${args[*]}" = "${words[*]:1}" ]; then
       echo "does not target $QUOTED_HOST: ${requests[$i]}"

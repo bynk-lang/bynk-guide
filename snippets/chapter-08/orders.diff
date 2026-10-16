@@ -1,0 +1,66 @@
+--- a/src/shop/orders.bynk
++++ b/src/shop/orders.bynk
+@@ -1,6 +1,8 @@
+ context shop.orders
+ 
+ uses shop.values
++consumes shop.inventory as Stock
++consumes shop.payments as Pay
+ consumes bynk { Logger }
+ 
+ ---
+@@ -254,26 +186,40 @@
+ 						"that order has already been placed"
+ 					),
+ 					Ok(_) => {
+-						let held <- Inventory(body.sku).reserve(
+-							id,
+-							body.qty
+-						)
++						let held <- Stock.reserve(body.sku, id, body.qty)
+ 						match held {
+ 							Err(Insufficient) => {
+ 								let _ <- Order(id).reject()
+ 								Conflict("out of stock")
+ 							},
+ 							Ok(_) => {
+-								let _ <- Order(id).confirm()
+-								~> Logger.info("order for \(t) cents")
+-								Created(OrderView {
+-									id: id,
+-									status: "placed",
+-									owner: c.identity,
+-									sku: body.sku,
+-									qty: body.qty,
+-									cents: body.cents,
+-								})
++								let paid <- Pay.authorise(id, body.cents)
++								match paid {
++									Err(Declined) => {
++										let _ <- Stock.release(
++											body.sku,
++											id
++										)
++										let _ <- Order(id).reject()
++										UnprocessableEntity(
++											"payment declined"
++										)
++									},
++									Ok(_) => {
++										let _ <- Order(id).confirm()
++										~> Logger.info(
++											"order for \(t) cents"
++										)
++										Created(OrderView {
++											id: id,
++											status: "placed",
++											owner: c.identity,
++											sku: body.sku,
++											qty: body.qty,
++											cents: body.cents,
++										})
++									},
++								}
+ 							},
+ 						}
+ 					},

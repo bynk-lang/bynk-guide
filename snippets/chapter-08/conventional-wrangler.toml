@@ -1,0 +1,13 @@
+name = "shop-orders"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+[[services]]
+binding = "INVENTORY"
+service = "shop-inventory"
+entrypoint = "Inventory"
+
+[[services]]
+binding = "PAYMENTS"
+service = "shop-payments"
+entrypoint = "Payments"

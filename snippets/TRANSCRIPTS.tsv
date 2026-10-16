@@ -38,3 +38,6 @@ chapter-06/test-run.txt	test	chapter-06/shop
 chapter-06/responses.txt	http	chapter-06/shop
 chapter-07/test-run.txt	test	chapter-07/shop
 chapter-07/responses.txt	http	chapter-07/shop	--var AUTH_JWT_SECRET:not-a-secret
+chapter-08/test-run.txt	test	chapter-08/shop
+chapter-08/responses.txt	http	chapter-08/shop	--var AUTH_JWT_SECRET:not-a-secret
+chapter-08/emitted/wrangler.toml	emit	chapter-08/shop	workers	workers/shop-orders/wrangler.toml

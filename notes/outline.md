@@ -91,11 +91,20 @@ the issue, as `brief.md` asks.
    *Replaces:* auth middleware. *Shop:* `Customer` and `Admin`, owners, and
    the public stock lookup (bynk-lang/shop#8).
 8. **Contexts and Service Bindings**
-   `consumes`, `on call`, `Caller`; the service coordinates, the agent owns
-   state (footnote bynk-lang/bynk#1960). `commons` for types shared between
-   contexts. Compensation by hand: reserve, authorise, release on failure, and
-   why that is not crash-safe (a Worker that dies between `reserve` and
-   `release` leaks stock; sagas are planned, see chapter 14).
+   The shop splits into `shop.orders`, `shop.inventory` and `shop.payments`,
+   all `uses shop.values`. `exports transparent`, `on call` services with
+   `by c: Caller`, `consumes … as`; a service coordinates, an agent owns
+   state (bynk-lang/bynk#1960). Payments is `fakeCharge`, a pure function,
+   until chapter 9. Compensation by hand (release and reject on a declined
+   payment) and why it isn't crash-safe; sagas are planned; chapter 14's
+   sweeper. Refusals: another context's agent called directly
+   (`bynk.consumes.unknown_service`), and a `consumes` cycle
+   (`bynk.context.consumes_cycle`). Running several contexts needs `--inspect`
+   (bynk-lang/bynk#1954). Beside an existing Worker (bynk-lang/bynk#1973). A
+   warning: at 0.330.4 a deployed context answers its `on call` services on
+   its `workers.dev` address with any claimed caller; fixed upstream, not yet
+   released (bynk-lang/bynk#2004, #2012). Chapter 12 must turn off
+   `workers.dev` for internal contexts, or the pin must move past the fix.
    *Replaces:* Service Binding glue and hand-typed RPC. *Shop:* orders,
    inventory, payments.
 9. **Capabilities and providers**
