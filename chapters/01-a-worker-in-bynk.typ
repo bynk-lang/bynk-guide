@@ -70,7 +70,7 @@ one), check it, and put the three programs on your `PATH`:
 #code-listing(
   [Installing Bynk #v],
   (
-    "base=https://github.com/accuser/bynk/releases/download/v" + v + "\n"
+    "base=https://github.com/bynk-lang/bynk/releases/download/v" + v + "\n"
       + "curl -LO $base/" + archive + ".tar.gz\n"
       + "curl -LO $base/SHA256SUMS\n"
       + "sha256sum -c --ignore-missing SHA256SUMS\n"
