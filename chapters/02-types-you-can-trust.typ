@@ -13,8 +13,9 @@ has to decide whether that body is an order at all.
 
 You have written this Worker before. This chapter writes it twice: once in
 TypeScript, the way you would today, and once in Bynk. The Bynk version is
-shorter, but that is not the point. The point is what each version still
-knows about the order once the check has passed.
+not shorter once its doc comments are counted, and length is not the point.
+The point is what each version still knows about the order once the check
+has passed.
 
 By the end of the chapter the shop has a vocabulary of its own: a sku, an
 order id, a quantity and a price, each with a rule that is checked once, at
@@ -64,11 +65,15 @@ zod's errors yourself.
 
 None of this is a reason to stop using zod. It is the reason Bynk puts the
 same ideas in the language, where the compiler can hold you to them.#footnote[
-  _Architecture that compiles_, chapter 2, makes the general argument: a
-  data shape is not a domain model. This chapter is the practical half.
+  Chapter 2 of “Architecture that compiles”, “A data shape is not a domain
+  model”, makes the general argument. This chapter is the practical half.
 ]
 
 == A vocabulary for the shop <ix-guide-02-a-vocabulary-for-the-shop>
+
+The shop is a new project, set up as chapter 1 showed: a `bynk.toml`
+naming it `shop`, and its sources under `src/shop/`. The rest of the book
+grows this one project.
 
 #lead-in[
 Start with the values the shop cares about, not with the request. Create
@@ -85,13 +90,18 @@ A `commons` holds pure types and functions: no state, no effects, nothing
 that runs on its own. It compiles to plain TypeScript types and functions,
 and any context in the project can use it. The text between `---` lines is
 documentation. It belongs to the declaration that follows, and the
-language server shows it on hover.
+language server shows it on hover.#footnote[
+  The Bynk Book, “How a program is shaped” and “Document your code”.
+]
 
 There are two kinds of type here, and they make different promises.
 
 `Quantity` and `Cents` are _refined_ types: an `Int` with a predicate. A
 `Quantity` is a whole number from 1 to 1,000, and every `Quantity` in the
-program has passed that check. Anywhere an `Int` is wanted, you can pass a
+program has passed that check.#footnote[
+  `InRange` and `NonEmpty` are two of several predicates. The Bynk Book's
+  refined-types reference lists them all, and how they combine.
+] Anywhere an `Int` is wanted, you can pass a
 `Quantity`: reading a refined value as its base is always safe. Going the
 other way is not, so an `Int` doesn't become a `Quantity` without being
 checked.
@@ -228,7 +238,9 @@ route, though: a queue message, a value read back from storage, or a field
 inside a webhook that carries JSON as a string. For those,
 `Json.decode[OrderLine](text)` does what the route did. It parses the text,
 checks the shape and every refinement, and returns a `Result`: the
-`OrderLine`, or a `JsonError` that says what was wrong.
+`OrderLine`, or a `JsonError` that says what was wrong.#footnote[
+  The Bynk Book, “Decode untrusted JSON into a typed value”.
+]
 
 You will meet `Result` properly in the next chapter. For now, the important
 part is that the decoder can't hand you an `OrderLine` with a zero quantity.
@@ -253,9 +265,9 @@ third calls the route the way the Worker would: a test addresses an HTTP
 route by its pattern, followed by its parameters, so
 `api.PUT("/orders/:id", …)` runs the handler with that id and body.
 `expect … is Ok(_)` asks whether a result has that shape.#footnote[
-  You might expect `expect r == Ok(line)`. At Bynk 0.330.4 that comparison
-  is checked against the wrong type inside a test case
-  (accuser/bynk#1979), so this book writes `is` throughout.
+  You might expect to compare whole results, as in `expect r == Ok(v)`. At
+  Bynk 0.330.4 that comparison is checked against the wrong type inside a
+  test case (accuser/bynk#1979), so this book writes `is` throughout.
 ]
 
 #lead-in[
