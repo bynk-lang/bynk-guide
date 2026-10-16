@@ -5,11 +5,15 @@
 # test: the `bynkc test .` output of the project, from its `Running tests...`
 # line to the end. scripts/check-book-tests.sh regenerates and diffs it.
 # http: `curl` requests against `bynk dev` serving the project, each followed by
-# the status and body it answers with. A body may wrap onto indented
+# the status and body it answers with (the status alone for an empty body). A body may wrap onto indented
 # continuation lines; the gate strips each one's indentation and joins them with
 # nothing, so wrap only where the JSON has no space. Requests are separated by a
 # blank line and must target localhost:8787. scripts/check-book-responses.sh
 # serves the project, replays each request and compares.
+# An http row may add a fourth column: arguments for `wrangler dev`, after
+# `--` (for example `--var AUTH_JWT_SECRET:not-a-secret`). A transcript may
+# have a `.env` sidecar of `KEY=VALUE` lines whose values replace `$KEY` in its
+# requests, so a page can print `Bearer $ALICE` for a long signed token.
 # emit: a file `bynkc compile . --output out --target <target>` writes, or part
 # of it. With only a path, the whole file, byte for byte. With <from>, every line
 # containing it; with <to> as well, the first line containing <from> through the
@@ -32,3 +36,5 @@ chapter-05/test-run.txt	test	chapter-05/shop
 chapter-05/responses.txt	http	chapter-05/shop
 chapter-06/test-run.txt	test	chapter-06/shop
 chapter-06/responses.txt	http	chapter-06/shop
+chapter-07/test-run.txt	test	chapter-07/shop
+chapter-07/responses.txt	http	chapter-07/shop	--var AUTH_JWT_SECRET:not-a-secret

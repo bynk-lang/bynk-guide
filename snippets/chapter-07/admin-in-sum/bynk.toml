@@ -1,0 +1,7 @@
+# Intentionally rejected source for chapter 7: a refinement actor as a member of a sum.
+[project]
+name = "shop"
+version = "0.1.0"
+
+[fmt]
+max_line_width = 74

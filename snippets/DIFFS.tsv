@@ -6,3 +6,4 @@ chapter-03/orders.diff	chapter-02/shop	chapter-03/shop	src/shop/orders.bynk	all
 chapter-04/orders.diff	chapter-03/shop	chapter-04/shop	src/shop/orders.bynk	all
 chapter-05/orders.diff	chapter-04/shop	chapter-05/shop	src/shop/orders.bynk	all
 chapter-06/inventory.diff	chapter-05/shop	chapter-06/shop	src/shop/orders.bynk	3,4,5
+chapter-07/routes.diff	chapter-06/shop	chapter-07/shop	src/shop/orders.bynk	9,10,12

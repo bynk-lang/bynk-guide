@@ -1,0 +1,46 @@
+commons shop.values
+
+---
+A product's stock-keeping unit. Opaque, so a sku can't be passed where an
+order id is expected, although both are strings.
+---
+type Sku = opaque String where NonEmpty
+
+---
+The id the customer chooses for an order, from the URL.
+---
+type OrderId = opaque String where NonEmpty
+
+---
+How many units of one sku an order moves.
+---
+type Quantity = Int where InRange(1, 1000)
+
+---
+A price in cents: at least one cent, at most 100,000.00.
+---
+type Cents = Int where InRange(1, 10000000)
+
+---
+Non-empty text: what a `Sku` or an `OrderId` is made of.
+---
+type Label = String where NonEmpty
+
+---
+A sku from text already known to be non-empty, so no `Result` is
+needed. Only this commons may call `.unsafe`, and `Label` has already
+established the predicate.
+---
+fn skuFrom(text: Label) -> Sku { Sku.unsafe(text) }
+
+---
+An order id from non-empty text, as `skuFrom`.
+---
+fn orderIdFrom(text: Label) -> OrderId { OrderId.unsafe(text) }
+
+---
+The order id as plain text. Only this commons can read an `OrderId`'s
+string, and a map keyed by an opaque type doesn't build yet
+(bynk-lang/bynk#1982), so stores key their maps by this instead.
+---
+fn orderRef(id: OrderId) -> String { id.raw }
