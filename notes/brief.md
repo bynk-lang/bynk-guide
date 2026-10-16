@@ -107,6 +107,12 @@ says why, rather than teaching what the compiler accepts but the runtime breaks:
 5. Leave exact syntax and exhaustive detail to the online Book, and link to it.
 6. Compile-test, format-check and type-check every listing.
 7. Use sentence case for book, part, chapter and section titles.
+8. Address the reader as "you" and give build steps in the imperative ("Add a
+   `Quantity` type"). Otherwise follow *Architecture that compiles*: a
+   `#lead-in` before every listing, listings read from `snippets/`, compiler
+   refusals quoted with `#compiler-message`, a paragraph on what the construct
+   costs, a closing turn into the next chapter, and British spelling. Don't
+   retell that book's arguments or reuse its examples; link to it.
 
 ## Working title
 

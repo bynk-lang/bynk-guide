@@ -1,0 +1,17 @@
+$ curl -X PUT localhost:8787/orders/o1 \
+    -d '{"sku":"widget","qty":3,"cents":2500}'
+201 {"sku":"widget","qty":3,"cents":2500}
+
+$ curl -X PUT localhost:8787/orders/o1 \
+    -d '{"sku":"widget","qty":0,"cents":2500}'
+400 {"kind":"RefinementViolation","path":"$.qty",
+     "violation":{"field":"Quantity",
+       "message":"must be in range [1, 1000]","value":0}}
+
+$ curl -X PUT localhost:8787/orders/o1 \
+    -d '{"sku":"widget","qty":3}'
+400 {"kind":"StructuralMismatch","path":"$.cents",
+     "expected":"number","actual":"undefined"}
+
+$ curl -X PUT localhost:8787/orders/o1 -d '{"sku":"widget",'
+400 {"kind":"MalformedJson","details":"Invalid request body"}

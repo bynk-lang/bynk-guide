@@ -17,6 +17,7 @@ scope: source.bynk
 
 contexts:
   main:
+    - include: doc-comments
     - include: comments
     - include: strings
     - include: numbers
@@ -25,6 +26,20 @@ contexts:
     - include: builtin-types
     - include: user-types
     - include: operators
+
+  # A doc comment is the prose between two `---` lines, each alone on its
+  # line. It must match before `--`, which would take the fence as a line
+  # comment and highlight the prose as code.
+  doc-comments:
+    - match: '^\s*---\s*$'
+      scope: punctuation.definition.comment.begin.bynk
+      push: doc-comment-body
+
+  doc-comment-body:
+    - meta_scope: comment.block.documentation.bynk
+    - match: '^\s*---\s*$'
+      scope: punctuation.definition.comment.end.bynk
+      pop: true
 
   comments:
     - match: '--.*$'

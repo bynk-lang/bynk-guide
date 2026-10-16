@@ -1,0 +1,16 @@
+suite shop.orders
+case "a line that fits its types is admitted" {
+	let raw = "{\"sku\":\"widget\",\"qty\":3,\"cents\":2500}"
+	expect Json.decode[OrderLine](raw) is Ok(_)
+}
+
+case "a zero quantity is refused" {
+	let raw = "{\"sku\":\"widget\",\"qty\":0,\"cents\":2500}"
+	expect Json.decode[OrderLine](raw) is Err(_)
+}
+
+case "the route answers with the line it was given" {
+	let line = OrderLine { sku: skuFrom("widget"), qty: 3, cents: 2500 }
+	let r <- api.PUT("/orders/:id", orderIdFrom("o1"), line)
+	expect r is Created(_)
+}
