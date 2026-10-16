@@ -46,7 +46,7 @@ newest. A `v*` tag publishes it as a GitHub release.
 ## Keeping the listings true
 
 Every listing is a project under `snippets/` held by three gates, and what
-the chapters quote from running it by two more:
+the chapters quote from running or compiling it by three more:
 
 ```sh
 ./scripts/check-book-snippets.sh   # bynkc check: clean, or the exact refusal quoted
@@ -54,6 +54,7 @@ the chapters quote from running it by two more:
 ./scripts/check-book-emit.sh       # build, then tsc --strict on the emitted TypeScript
 ./scripts/check-book-tests.sh      # bynkc test: every case passes, quoted runs match
 ./scripts/check-book-responses.sh  # bynk dev: quoted HTTP responses match
+./scripts/check-book-emitted.sh    # bynkc compile: quoted generated files match
 ```
 
 They use whichever `bynkc` (and `bynk`) is on `PATH`; CI installs the pinned release with

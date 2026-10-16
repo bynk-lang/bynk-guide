@@ -4,7 +4,8 @@
 # clean pass, the exact refusal a chapter quotes, or a specific warning. The
 # chapters typeset these files verbatim, so a second gate holds them to
 # canonical formatting, and a third builds each one and type-checks the emitted
-# TypeScript.
+# TypeScript. What the chapters quote from running them (test runs, HTTP
+# responses, and generated files) is diffed against snippets/TRANSCRIPTS.tsv.
 #
 # ci.yml calls this at the pinned release on every push and pull request.
 # bynk-canary.yml calls it at each new Bynk release, so a release that renames
@@ -100,6 +101,15 @@ jobs:
         run: ./scripts/check-book-responses.sh
         env:
           BYNK: ${{ steps.bynk.outputs.bindir }}/bynk
+      - name: Diff the manuscript's quoted compiler output
+        # Compiles each project an `emit` row in snippets/TRANSCRIPTS.tsv names,
+        # for the row's target, and diffs the generated file (or the lines the
+        # row selects) against the chapter's copy. A code-generator change in a
+        # newer release would otherwise leave the page quoting stale output.
+        if: ${{ !cancelled() && steps.bynk.conclusion == 'success' }}
+        run: ./scripts/check-book-emitted.sh
+        env:
+          BYNKC: ${{ steps.bynk.outputs.bindir }}/bynkc
       - name: Report the drift
         if: ${{ failure() && inputs.version != '' }}
         env:
@@ -108,8 +118,9 @@ jobs:
           {
             echo "### The manuscript's evidence no longer matches Bynk ${INSTALLED#v}"
             echo
-            echo "A diagnostic changed, or the formatter, a test run or a quoted"
-            echo "response did. Revise the affected chapter and snippet, then bump"
+            echo "A diagnostic changed, or the formatter, a test run, a quoted"
+            echo "response or quoted compiler output did. Revise the affected"
+            echo "chapter and snippet, then bump"
             echo "the pin (\`BYNK_VERSION\` in \`.github/workflows/snippets.yml\`)"
             echo "to this release."
           } >> "$GITHUB_STEP_SUMMARY"
