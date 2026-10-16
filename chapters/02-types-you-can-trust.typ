@@ -268,7 +268,7 @@ route by its pattern, followed by its parameters, so
 `expect … is Ok(_)` asks whether a result has that shape.#footnote[
   You might expect to compare whole results, as in `expect r == Ok(v)`. At
   Bynk 0.330.4 that comparison is checked against the wrong type inside a
-  test case (accuser/bynk#1979), so this book writes `is` throughout.
+  test case (bynk-lang/bynk#1979), so this book writes `is` throughout.
 ]
 
 #lead-in[
@@ -304,7 +304,7 @@ Two costs arrive later and are worth knowing about now. Changing the type of
 a field in an event is a breaking change, even when the JSON looks the same,
 because a subscriber may still hold an event written under the old rule
 (chapter 15). And at 0.330.4 a `Map` can't yet be keyed by an opaque type
-(accuser/bynk#1982), so chapter 5 keys its maps by text.
+(bynk-lang/bynk#1982), so chapter 5 keys its maps by text.
 
 Finally, the predicates are your judgement, not the compiler's. Nothing
 stops you writing `InRange(1, 1000)` when the warehouse's real limit is 50.

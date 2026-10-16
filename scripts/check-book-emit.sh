@@ -4,7 +4,7 @@
 #
 # check-book-snippets.sh runs `bynkc check`, which proves a program is
 # accepted. It does not prove the program can be built: a listing can pass
-# `check` and still emit TypeScript that `tsc` rejects (accuser/bynk#1818 is one
+# `check` and still emit TypeScript that `tsc` rejects (bynk-lang/bynk#1818 is one
 # such case). A chapter presents its listings as working programs, so this gate
 # compiles every project expected to pass, for both topologies the book
 # discusses (`bundle` and `workers`), and type-checks the output with

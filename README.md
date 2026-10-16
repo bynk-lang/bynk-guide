@@ -1,6 +1,6 @@
 # Building with Bynk
 
-The source of a guide to the [Bynk](https://github.com/accuser/bynk) language
+The source of a guide to the [Bynk](https://github.com/bynk-lang/bynk) language
 for TypeScript and Cloudflare developers: a tutorial that builds one
 multi-context service ([`bynk-lang/shop`](https://github.com/bynk-lang/shop)) a
 chapter at a time, typeset for print.
