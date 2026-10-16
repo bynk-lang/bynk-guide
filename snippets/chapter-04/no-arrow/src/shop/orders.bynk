@@ -1,0 +1,76 @@
+context shop.orders
+
+uses shop.values
+consumes bynk { Logger }
+
+---
+What the customer is buying: one sku, how many, and the agreed price.
+---
+type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+
+---
+Why an order was refused. `TooLarge` carries the reason the total was
+not a price the shop can charge; `AlreadyDecided` means the id has been
+used.
+---
+type OrderError = | TooLarge(reason: ValidationError)
+| AlreadyDecided
+embeds ValidationError as TooLarge
+
+---
+What the order comes to. The total must itself be a `Cents`, so an
+order over 100,000.00 is refused before anything else happens.
+---
+fn total(line: OrderLine) -> Result[Cents, OrderError] {
+	Ok(Cents.of(line.qty * line.cents)?)
+}
+
+---
+One order, keyed by the id the customer chose. `line` is `None` until
+the order is opened, so opening the same id twice opens it once.
+---
+agent Order {
+	key id: OrderId
+
+	store line: Cell[Option[OrderLine]]
+
+	on call open(wanted: OrderLine) -> Effect[Result[(), OrderError]] {
+		match line {
+			None => {
+				line := Some(wanted)
+				Ok(())
+			},
+			Some(_) => Err(AlreadyDecided),
+		}
+	}
+
+	on call view() -> Effect[Option[OrderLine]] { line }
+}
+
+service api from http {
+	on PUT("/orders/:id") (
+		id: OrderId,
+		body: OrderLine
+	) -> Effect[HttpResult[OrderLine]] by Visitor given Logger {
+		match total(body) {
+			Err(_) => UnprocessableEntity(
+				"the order comes to more than 100,000.00"
+			),
+			Ok(t) => {
+				let opened = Order(id).open(body)
+				~> Logger.info("order for \(t) cents")
+				Created(body)
+			},
+		}
+	}
+
+	on GET("/orders/:id") (
+		id: OrderId
+	) -> Effect[HttpResult[OrderLine]] by Visitor {
+		let found <- Order(id).view()
+		match found {
+			None => NotFound,
+			Some(l) => Ok(l),
+		}
+	}
+}

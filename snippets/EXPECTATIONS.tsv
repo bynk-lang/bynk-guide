@@ -13,3 +13,5 @@ chapter-01/no-status	fail	bynk.types.return_mismatch
 chapter-01/one-armed-if	fail	bynk.parse.expected_token
 chapter-03/no-embeds	fail	bynk.types.question_error_mismatch
 chapter-03/question-in-handler	fail	bynk.types.question_outside_result
+chapter-04/non-exhaustive	fail	bynk.types.non_exhaustive_match
+chapter-04/no-arrow	fail	bynk.effect.unbound_effect
