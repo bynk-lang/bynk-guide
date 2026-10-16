@@ -41,14 +41,19 @@ the issue, as `brief.md` asks.
 ## Part II: State
 
 4. **An agent is a Durable Object**
-   Keyed agents, `Cell`, `update`, zeroable state, one owner. An opaque value
-   has no zero, so `Order` keeps its line as `Option[OrderLine]`: `Option` is
-   taught here.
-   *Replaces:* a Durable Object class and its storage calls. *Shop:* `Inventory`.
+   Keyed agents, `Cell`, `:=` and the commit at the handler's end, zeroable
+   state, one owner. An opaque value has no zero, so `Order` keeps its line as
+   `Option[OrderLine]`: `Option` is taught here. Refusals: an agent call never
+   awaited (`bynk.effect.unbound_effect`), and chapter 3's `match` once
+   `OrderError` gains `AlreadyDecided`.
+   *Replaces:* a Durable Object class and its storage calls.
+   *Shop:* `Order` (open once, view) and `GET /orders/:id`.
 5. **Other kinds of storage**
    `Map`, `Query[T]`, `Log` with `@retain`, `Cache` with `@ttl`, and `Kv`.
    Light: these are 1.x surface, not Foundations.
-   *Shop:* `Inventory` keeps its reservations as `holds: Map[String, Hold]`,
+   *Shop:* `Inventory` arrives: `available: Cell[Int]` changed with `update`
+   (an effect, awaited with `let _ <-`), and its reservations as
+   `holds: Map[String, Hold]`,
    keyed by order id, so reserving twice holds the stock once and releasing is
    idempotent; a `Query` totals the units held. The timestamp on a hold waits
    for chapter 14, which needs `Clock`. Project entries into a named record

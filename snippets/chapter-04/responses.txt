@@ -1,0 +1,10 @@
+$ curl -X PUT localhost:8787/orders/o1 \
+    -d '{"sku":"widget","qty":3,"cents":2500}'
+201 {"sku":"widget","qty":3,"cents":2500}
+
+$ curl -X PUT localhost:8787/orders/o1 \
+    -d '{"sku":"widget","qty":1,"cents":100}'
+409 {"error":"that order has already been placed"}
+
+$ curl localhost:8787/orders/o1
+200 {"sku":"widget","qty":3,"cents":2500}

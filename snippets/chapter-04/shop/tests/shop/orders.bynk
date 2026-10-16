@@ -1,0 +1,40 @@
+suite shop.orders
+case "a line that fits its types is admitted" {
+	let raw = "{\"sku\":\"widget\",\"qty\":3,\"cents\":2500}"
+	expect Json.decode[OrderLine](raw) is Ok(_)
+}
+
+case "a zero quantity is refused" {
+	let raw = "{\"sku\":\"widget\",\"qty\":0,\"cents\":2500}"
+	expect Json.decode[OrderLine](raw) is Err(_)
+}
+
+case "an order's total is quantity times price" {
+	let line = OrderLine { sku: skuFrom("widget"), qty: 3, cents: 2500 }
+	expect total(line) is Ok(_)
+}
+
+case "an order over 100,000.00 is too large" {
+	let line = OrderLine {
+		sku: skuFrom("widget"),
+		qty: 1000,
+		cents: 20000,
+	}
+	expect total(line) is Err(TooLarge(_))
+}
+
+case "a fresh order has no line" {
+	let v <- Order(orderIdFrom("o1")).view()
+	expect v is None
+}
+
+case "an order is opened once" {
+	let id = orderIdFrom("o2")
+	let line = OrderLine { sku: skuFrom("widget"), qty: 3, cents: 2500 }
+	let first <- Order(id).open(line)
+	expect first is Ok(_)
+	let again <- Order(id).open(line)
+	expect again is Err(AlreadyDecided)
+	let v <- Order(id).view()
+	expect v is Some(_)
+}

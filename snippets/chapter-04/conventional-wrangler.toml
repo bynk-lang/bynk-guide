@@ -1,0 +1,11 @@
+name = "shop-orders"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+[[durable_objects.bindings]]
+name = "ORDER"
+class_name = "Order"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Order"]

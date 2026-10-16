@@ -25,3 +25,6 @@ chapter-01/emitted/greeting.ts	emit	chapter-01/greet	workers	workers/hello/handl
 chapter-03/test-run.txt	test	chapter-03/shop
 chapter-03/responses.txt	http	chapter-03/shop
 chapter-03/emitted/send.ts	emit	chapter-03/shop	workers	workers/shop-orders/handlers.ts	waitUntil(deps.Logger
+chapter-04/test-run.txt	test	chapter-04/shop
+chapter-04/responses.txt	http	chapter-04/shop
+chapter-04/emitted/wrangler.toml	emit	chapter-04/shop	workers	workers/shop-orders/wrangler.toml

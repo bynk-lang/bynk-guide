@@ -214,10 +214,11 @@ From the compiled handler:
 `fetch`, so the log runs to completion after the response has gone.
 
 One warning, before it matters. The choice is about _waiting_, not about
-whether a value comes back. A durable write returns nothing, an `Effect[()]`,
-just like a log line, and it still has to be waited for, or a read later in
-the same handler may not see it. Chapter 4 writes to storage for the first
-time, and every write there uses `let _ <-`.
+whether a value comes back. A write to storage often returns nothing, an
+`Effect[()]`, just like a log line, and it still has to be waited for, or a
+read later in the same handler may not see it. Chapter 4 stores state for
+the first time: there, a plain assignment isn't a call at all, and the one
+storage operation that is, `update`, is waited for with `let _ <-`.
 
 == From outside <ix-guide-03-from-outside>
 
