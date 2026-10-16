@@ -1,0 +1,11 @@
+$ curl localhost:8787/
+200 "Hello from hello!"
+
+$ curl localhost:8787/hello/Ada
+200 "Hello, Ada!"
+
+$ curl localhost:8787/hello/Ada%20Lovelace
+200 "Hello, Ada Lovelace!"
+
+$ curl localhost:8787/goodbye
+404 Not Found

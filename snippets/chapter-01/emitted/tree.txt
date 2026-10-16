@@ -1,0 +1,11 @@
+out/
+├── runtime.ts          the shared runtime: results, routing, headers
+├── bynk.ts             the first-party capabilities, such as Logger
+├── tsconfig.json
+└── workers/
+    └── hello/          one Worker per context
+        ├── index.ts      the fetch handler and router
+        ├── compose.ts    wires each handler's capabilities
+        ├── handlers.ts   your handlers, as TypeScript
+        ├── handlers.ts.map
+        └── wrangler.toml

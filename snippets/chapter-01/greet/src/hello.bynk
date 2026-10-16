@@ -1,0 +1,17 @@
+context hello
+
+consumes bynk { Logger }
+
+service api from http {
+	on GET("/") () -> Effect[HttpResult[String]] by v: Visitor given Logger {
+		let _ <- Logger.info("hello from hello")
+		Ok("Hello from hello!")
+	}
+
+	on GET("/hello/:name") (
+		name: String
+	) -> Effect[HttpResult[String]] by v: Visitor given Logger {
+		do if name == "world" { Logger.info("someone greeted the world") }
+		Ok("Hello, \(name)!")
+	}
+}

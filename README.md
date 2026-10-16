@@ -12,8 +12,8 @@ It sits between two other works, and is neither:
 - [*Architecture that compiles*](https://github.com/bynk-lang/architecture-that-compiles)
   argues for the language's design; this assumes the reader is willing to try it.
 
-The title is provisional. **The book is a skeleton**: the build, the listing
-gates and the canary work, and one stub chapter exercises them. Read
+The title is provisional. **The book is a working draft**: chapters 1 and 2
+are written, and the build, the listing gates and the canary hold them. Read
 [`notes/brief.md`](notes/brief.md) for the reader, scope and principles,
 [`notes/outline.md`](notes/outline.md) for the chapters, and
 [`notes/source-map.md`](notes/source-map.md) for where each chapter's code lives.
