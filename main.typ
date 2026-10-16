@@ -35,3 +35,4 @@
 #part-page(3, [Who is calling, and who is it for])
 
 #include "chapters/07-actors.typ"
+#include "chapters/08-contexts-and-service-bindings.typ"

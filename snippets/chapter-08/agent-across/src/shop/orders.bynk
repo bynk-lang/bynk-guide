@@ -1,0 +1,286 @@
+context shop.orders
+
+uses shop.values
+consumes shop.inventory as Stock
+consumes shop.payments as Pay
+consumes bynk { Logger }
+
+---
+Who is asking: the `sub` of a verified bearer token.
+---
+type CustomerId = String where NonEmpty
+
+---
+A customer: anyone with a token signed with the shop's secret.
+---
+actor Customer {
+	auth = Bearer(
+		secret = "AUTH_JWT_SECRET"
+	),
+	identity = CustomerId
+}
+
+---
+A customer whose token also carries the `admin` claim. No token is `401`;
+a customer without the claim is `403`.
+---
+actor Admin = Customer where hasClaim("admin")
+
+---
+What the customer is buying: one sku, how many, and the agreed price.
+---
+type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+
+---
+Why an order was refused. `TooLarge` carries the reason the total was
+not a price the shop can charge; `AlreadyDecided` means the id has been
+used; `NotPlaced` means only a placed order can be cancelled.
+---
+type OrderError = | TooLarge(reason: ValidationError)
+| AlreadyDecided
+| NotPlaced
+embeds ValidationError as TooLarge
+
+---
+What the order comes to. The total must itself be a `Cents`, so an
+order over 100,000.00 is refused before anything else happens.
+---
+fn total(line: OrderLine) -> Result[Cents, OrderError] {
+	Ok(Cents.of(line.qty * line.cents)?)
+}
+
+---
+Where an order is in its life. A new order is `Pending`; `open` moves it
+to `Opened` while its stock is reserved, and exactly one of `confirm` or
+`reject` then decides it. Only a `Placed` order can be cancelled.
+---
+type Status = enum { Pending, Opened, Placed, Rejected, Cancelled }
+
+---
+An order as its agent holds it. `line` is `None` until it is opened.
+---
+type Snapshot = { status: Status, owner: String, line: Option[OrderLine] }
+
+---
+One order, keyed by the id the customer chose. The agent owns the order's
+state and the rules for moving it. Rejected and cancelled are final.
+---
+agent Order {
+	key id: OrderId
+
+	store status: Cell[Status] = Pending
+	store owner: Cell[String]
+	store line: Cell[Option[OrderLine]]
+
+	transition rejected_is_final:
+		old.status is Rejected implies new.status is Rejected
+
+	transition cancelled_is_final:
+		old.status is Cancelled implies new.status is Cancelled
+
+	on call open(
+		who: String,
+		wanted: OrderLine
+	) -> Effect[Result[(), OrderError]] {
+		match status {
+			Pending => {
+				owner := who
+				line := Some(wanted)
+				status := Opened
+				Ok(())
+			},
+			_ => Err(AlreadyDecided),
+		}
+	}
+
+	on call confirm() -> Effect[()] {
+		status := Placed
+	}
+
+	on call reject() -> Effect[()] {
+		status := Rejected
+	}
+
+	on call cancel() -> Effect[Result[(), OrderError]] {
+		match status {
+			Placed => {
+				status := Cancelled
+				Ok(())
+			},
+			_ => Err(NotPlaced),
+		}
+	}
+
+	on call view() -> Effect[Snapshot] {
+		Snapshot { status: status, owner: owner, line: line }
+	}
+}
+
+type StockRequest = { qty: Quantity }
+
+---
+An order as the customer sees it.
+---
+type OrderView = {
+	id: OrderId,
+	status: String,
+	owner: String,
+	sku: Sku,
+	qty: Quantity,
+	cents: Cents,
+}
+
+fn name(s: Status) -> String {
+	match s {
+		Pending => "pending",
+		Opened => "opened",
+		Placed => "placed",
+		Rejected => "rejected",
+		Cancelled => "cancelled",
+	}
+}
+
+---
+The customer's view of an order: `None` for an order that was never
+opened, or that belongs to someone else, so a stranger can't tell which.
+---
+fn shown(id: OrderId, o: Snapshot, who: CustomerId) -> Option[OrderView] {
+	match o.line {
+		None => None,
+		Some(l) => if o.owner == who {
+			Some(OrderView {
+				id: id,
+				status: name(o.status),
+				owner: o.owner,
+				sku: l.sku,
+				qty: l.qty,
+				cents: l.cents,
+			})
+		} else {
+			None
+		},
+	}
+}
+
+---
+Whether a product can be ordered. A visitor sees only `InStock` or
+`SoldOut`; a signed-in customer sees how many are left.
+---
+type Availability = | InStock
+| SoldOut
+| Left(count: Int)
+
+service api from http {
+	on PUT("/orders/:id") (
+		id: OrderId,
+		body: OrderLine
+	) -> Effect[HttpResult[OrderView]] by c: Customer given Logger {
+		match total(body) {
+			Err(_) => UnprocessableEntity(
+				"the order comes to more than 100,000.00"
+			),
+			Ok(t) => {
+				let opened <- Order(id).open(c.identity, body)
+				match opened {
+					Err(_) => Conflict(
+						"that order has already been placed"
+					),
+					Ok(_) => {
+						let held <- Stock.reserve(body.sku, id, body.qty)
+						match held {
+							Err(Insufficient) => {
+								let _ <- Order(id).reject()
+								Conflict("out of stock")
+							},
+							Ok(_) => {
+								let paid <- Pay.authorise(id, body.cents)
+								match paid {
+									Err(Declined) => {
+										let _ <- Stock.release(
+											body.sku,
+											id
+										)
+										let _ <- Order(id).reject()
+										UnprocessableEntity(
+											"payment declined"
+										)
+									},
+									Ok(_) => {
+										let _ <- Order(id).confirm()
+										~> Logger.info(
+											"order for \(t) cents"
+										)
+										Created(OrderView {
+											id: id,
+											status: "placed",
+											owner: c.identity,
+											sku: body.sku,
+											qty: body.qty,
+											cents: body.cents,
+										})
+									},
+								}
+							},
+						}
+					},
+				}
+			},
+		}
+	}
+
+	on GET("/orders/:id") (
+		id: OrderId
+	) -> Effect[HttpResult[OrderView]] by c: Customer {
+		let o <- Order(id).view()
+		match shown(id, o, c.identity) {
+			None => NotFound,
+			Some(v) => Ok(v),
+		}
+	}
+
+	on POST("/orders/:id/cancel") (
+		id: OrderId
+	) -> Effect[HttpResult[OrderView]] by c: Customer {
+		let o <- Order(id).view()
+		match shown(id, o, c.identity) {
+			None => NotFound,
+			Some(v) => {
+				let r <- Order(id).cancel()
+				match r {
+					Err(_) => Conflict(
+						"only a placed order can be cancelled"
+					),
+					Ok(_) => {
+						let _ <- Stock.release(v.sku, id)
+						Ok(OrderView {
+							id: id,
+							status: "cancelled",
+							owner: v.owner,
+							sku: v.sku,
+							qty: v.qty,
+							cents: v.cents,
+						})
+					},
+				}
+			},
+		}
+	}
+
+	on PUT("/stock/:sku") (
+		sku: Sku,
+		body: StockRequest
+	) -> Effect[HttpResult[Int]] by a: Admin {
+		let level <- Stock.restock(sku, body.qty)
+		Ok(level)
+	}
+
+	on GET("/stock/:sku") (
+		sku: Sku
+	) -> Effect[HttpResult[Availability]] by who: Customer | Visitor {
+		let level <- Stock.Inventory(sku).level()
+		match who {
+			Customer(_) => Ok(Left(level)),
+			Visitor => if level > 0 { Ok(InStock) } else { Ok(SoldOut) },
+		}
+	}
+}

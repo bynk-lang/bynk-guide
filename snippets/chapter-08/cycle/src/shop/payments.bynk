@@ -1,0 +1,34 @@
+context shop.payments
+
+uses shop.values
+exports transparent { PayError }
+
+---
+Why a charge was refused.
+---
+type PayError = enum { Declined }
+
+---
+A stand-in for a card processor: a charge over 1,000.00 is declined, and
+the authorisation id is made from the order id. Chapter 9 puts a real
+processor behind a capability.
+---
+fn fakeCharge(order: OrderId, cents: Cents) -> Result[String, PayError] {
+	if cents > 100000 {
+		Err(Declined)
+	} else {
+		Ok("fake_\(orderRef(order))")
+	}
+}
+
+---
+Authorise a charge for an order.
+---
+service authorise {
+	on call(
+		order: OrderId,
+		cents: Cents
+	) -> Effect[Result[String, PayError]] by c: Caller {
+		fakeCharge(order, cents)
+	}
+}

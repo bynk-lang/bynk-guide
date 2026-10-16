@@ -21,3 +21,5 @@ chapter-06/self-reference	fail	bynk.cell.self_reference
 chapter-06/restates	fail	bynk.history.restates_invariant
 chapter-07/admin-in-sum	fail	bynk.actor.refinement_in_sum
 chapter-07/visitor-first	fail	bynk.actor.unreachable_sum_arm
+chapter-08/agent-across	fail	bynk.consumes.unknown_service
+chapter-08/cycle	fail	bynk.context.consumes_cycle

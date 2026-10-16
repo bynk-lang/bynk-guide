@@ -1,0 +1,26 @@
+Running tests...
+
+shop.inventory:
+  ✓ restocking adds to what is available
+  ✓ a reservation holds stock for its order, once
+  ✓ more than is available is refused, and takes nothing
+  ✓ releasing a hold puts its stock back, once
+  ✓ another context reserves through the service
+
+shop.orders:
+  ✓ a line that fits its types is admitted
+  ✓ a zero quantity is refused
+  ✓ an order's total is quantity times price
+  ✓ an order over 100,000.00 is too large
+  ✓ a fresh order is pending, with no line
+  ✓ an order is opened once
+  ✓ a confirmed order is placed, and can be cancelled once
+  ✓ a rejected order cannot be cancelled
+  ✓ an order is shown to its owner, and to nobody else
+  ✓ an order is only cancelled after it was placed
+
+shop.payments:
+  ✓ a charge within the limit is authorised
+  ✓ a charge over 1,000.00 is declined
+
+17 passed, 0 failed.

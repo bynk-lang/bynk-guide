@@ -1,0 +1,107 @@
+context shop.inventory
+
+uses shop.values
+consumes shop.orders
+exports transparent { StockError }
+
+---
+Why stock couldn't be reserved.
+---
+type StockError = enum { Insufficient }
+
+---
+Stock set aside for one order.
+---
+type Hold = { order: OrderId, qty: Int }
+
+---
+The stock of one product. `available` is what can still be sold; a
+reservation moves units out of it into `holds`, keyed by order id, so
+reserving twice for the same order holds the stock once. Whatever the
+handlers do, stock never goes negative.
+---
+agent Inventory {
+	key sku: Sku
+
+	store available: Cell[Int]
+	store holds: Map[String, Hold]
+
+	invariant available_non_negative:
+		available >= 0
+
+	on call restock(qty: Quantity) -> Effect[Int] {
+		let _ <- available.update((v) => v + qty)
+		available
+	}
+
+	on call reserve(
+		order: OrderId,
+		qty: Quantity
+	) -> Effect[Result[(), StockError]] {
+		let already <- holds.contains(orderRef(order))
+		if already {
+			Ok(())
+		} else {
+			if available < qty {
+				Err(Insufficient)
+			} else {
+				let _ <- available.update((v) => v - qty)
+				let _ <- holds.put(orderRef(order), Hold {
+					order: order,
+					qty: qty,
+				})
+				Ok(())
+			}
+		}
+	}
+
+	on call release(order: OrderId) -> Effect[Int] {
+		let held <- holds.get(orderRef(order))
+		match held {
+			None => available,
+			Some(h) => {
+				let _ <- holds.remove(orderRef(order))
+				let _ <- available.update((v) => v + h.qty)
+				available
+			},
+		}
+	}
+
+	on call level() -> Effect[Int] { available }
+
+	on call held() -> Effect[Int] {
+		holds.values.fold(0, (n, h) => n + h.qty)
+	}
+}
+
+---
+The calls other contexts can make, through a Service Binding. `c` is the
+name of the context that called.
+---
+service restock {
+	on call(sku: Sku, qty: Quantity) -> Effect[Int] by c: Caller {
+		Inventory(sku).restock(qty)
+	}
+}
+
+service reserve {
+	on call(
+		sku: Sku,
+		order: OrderId,
+		qty: Quantity
+	) -> Effect[Result[(), StockError]] by c: Caller {
+		Inventory(sku).reserve(order, qty)
+	}
+}
+
+service release {
+	on call(sku: Sku, order: OrderId) -> Effect[Int] by c: Caller {
+		Inventory(sku).release(order)
+	}
+}
+
+service level {
+	on call(sku: Sku) -> Effect[Int] by c: Caller {
+		Inventory(sku).level()
+	}
+}
