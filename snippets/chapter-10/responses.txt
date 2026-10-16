@@ -1,0 +1,15 @@
+$ curl -X POST localhost:8789/webhooks/processor \
+    -d '{"id":"evt_1","event":"payment.captured","payment":"fake_o1"}'
+401
+
+$ curl -X POST localhost:8789/webhooks/processor \
+    -H "X-Processor-Timestamp: 1700000000" \
+    -H "X-Processor-Signature: sha256=deadbeef" \
+    -d '{"id":"evt_1","event":"payment.captured","payment":"fake_o1"}'
+401
+
+$ curl -X POST localhost:8789/webhooks/processor \
+    -H "X-Processor-Timestamp: 1700000000" \
+    -H "X-Processor-Signature: sha256=$OLD_SIG" \
+    -d '{"id":"evt_1","event":"payment.captured","payment":"fake_o1"}'
+401

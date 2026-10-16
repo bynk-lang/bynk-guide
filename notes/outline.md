@@ -120,19 +120,18 @@ the issue, as `brief.md` asks.
    *Replaces:* reading `env` directly, and `vi.mock`. *Shop:* `Processor`,
    `CardProcessor`, `PayError.Unavailable` and the `503`.
 10. **The host boundary**
-    An `adapter` and its TypeScript binding, with `Fetch` and `Secrets` as
-    by-name deps: the binding maps a real-shaped processor API's responses to
-    `Approved`, `Declined` and `Unavailable` (503, failing closed when the key is
-    missing). A capability declared in an adapter can't be provided by a
-    context, and a capability has one provider, so `CardProcessor` chooses the
-    fake or the gateway at run time from `PAYMENTS_PROCESSOR`. Then the webhook:
-    a `Signature` actor with a timestamp and a replay window, a `Payment` agent
-    whose state machine moves on each notice (chapter 6 again), and a `Log` of
-    notices that is also the replay guard. The binding is tested with
-    `node --test`, because `bynkc test` can't reach it yet (bynk-lang/bynk#1975).
-    This is where a reader leaves Bynk when it can't do what they want.
-    *Replaces:* a hand-written API client, and HMAC checks. *Shop:*
-    `shop.gateway`, the real processor, and `POST /webhooks/processor`.
+    The `shop.gateway` adapter (`Gateway`, `GatewayError`, an external provider
+    `HttpGateway given Fetch, Secrets`) and its TypeScript binding;
+    `CardProcessor given Gateway, Secrets` chooses the fake or the gateway;
+    a `Payment` agent with a `Log` of notices as the replay guard; and the
+    `ProcessorHook` `Signature` webhook. Refusals: a service in an adapter
+    (`bynk.adapter.disallowed_item`), and a context providing the adapter's
+    capability (`bynk.provider.unknown_capability`). The transcript shows
+    three refused webhooks (unsigned, forged, stale; the stale one's
+    signature is in `responses.env`). The binding is tested with
+    `node --test` (bynk-lang/bynk#1975), and the test gate now runs those.
+    *Replaces:* a hand-written webhook verifier. *Shop:* already has it all;
+    the chapter's copy is rewrapped to fit the page.
 
 ## Part IV: Confidence and delivery
 

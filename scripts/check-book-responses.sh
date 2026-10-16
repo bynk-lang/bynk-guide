@@ -73,13 +73,38 @@ stop_server() {
 trap 'stop_server; rm -rf "$work"' EXIT
 trap 'exit 130' INT TERM
 
-free_port() {
-  node -e 'const s = require("net").createServer();
-    s.listen(0, "127.0.0.1", () => { console.log(s.address().port); s.close(); });'
+# Prints the first of $1 consecutive free ports, none of them below $2 + 16 or
+# within 16 of $2 when $2 is given. `bynk dev` gives each context its own port
+# from a base, and its inspector its own from another, so a free base alone is
+# not enough on a busy machine.
+free_ports() {
+  node -e '
+    const net = require("net");
+    const want = Number(process.argv[1]), avoid = Number(process.argv[2] || 0);
+    const free = (port) => new Promise((ok) => {
+      const s = net.createServer();
+      s.once("error", () => ok(false));
+      s.listen(port, "127.0.0.1", () => s.close(() => ok(true)));
+    });
+    const any = () => new Promise((ok) => {
+      const s = net.createServer();
+      s.listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); });
+    });
+    (async () => {
+      for (;;) {
+        const base = await any();
+        if (avoid && Math.abs(base - avoid) < 16) continue;
+        if (base + want > 65535) continue;
+        let ok = true;
+        for (let i = 0; i < want && ok; i++) ok = await free(base + i);
+        if (ok) { console.log(base); return; }
+      }
+    })();
+  ' "$1" "${2:-0}"
 }
 
 # Starts `bynk dev` for $1 on port $2, logging to $3, with the wrangler
-# arguments in $4; returns once it is ready.
+# arguments in $4, for a project of $5 contexts; returns once it is ready.
 start_server() {
   local -a extra=()
   if [ -n "${4:-}" ]; then
@@ -89,9 +114,16 @@ start_server() {
   # Several contexts each start a wrangler inspector, and without --inspect
   # they collide on 9229 and fail to start (bynk-lang/bynk#1954).
   local inspect
-  inspect="$(free_port)"
+  inspect="$(free_ports "$5" "$2")"
+  # Local Service Bindings find each other through wrangler's dev registry,
+  # by Worker name. A shared registry lets one project's bindings resolve to
+  # another run's Workers of the same name, a previous chapter's or another
+  # session's, so each project gets a registry of its own.
+  local registry
+  registry="$(mktemp -d "$work/registry.XXXXXX")"
   set -m
-  WRANGLER_SEND_METRICS=false "$BYNK" dev --base-port "$2" \
+  WRANGLER_REGISTRY_PATH="$registry" WRANGLER_SEND_METRICS=false \
+    "$BYNK" dev --base-port "$2" \
     --inspect --inspect-port "$inspect" "$1" "${extra[@]}" >"$3" 2>&1 &
   pgid=$!
   set +m
@@ -227,9 +259,19 @@ while IFS=$'\t' read -r t k p w; do
   rm -rf "$copy" && mkdir -p "$copy" && cp -R "$SNIPPETS/$p/." "$copy/"
   rm -rf "$copy/out" "$copy/out-js" "$copy/.bynk"
   log="$work/dev.log"
-  port="$(free_port)"
+  contexts="$(grep -rlE '^context ' "$copy/src" 2>/dev/null | wc -l)"
+  [ "$contexts" -ge 1 ] || contexts=1
+  port="$(free_ports "$contexts")"
 
-  if ! start_server "$copy" "$port" "$log" "${w:-}"; then
+  # A port can still be taken between choosing it and binding it, on a busy
+  # machine, so try a second set before giving up.
+  started=1
+  if ! start_server "$copy" "$port" "$log" "${w:-}" "$contexts"; then
+    stop_server
+    port="$(free_ports "$contexts")"
+    start_server "$copy" "$port" "$log" "${w:-}" "$contexts" || started=0
+  fi
+  if [ "$started" -eq 0 ]; then
     printf 'FAIL    %-42s %s\n' "$t" "bynk dev did not come up on port $port"
     sed 's/^/          | /' "$log"
     stop_server
