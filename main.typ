@@ -24,3 +24,4 @@
 
 #include "chapters/01-a-worker-in-bynk.typ"
 #include "chapters/02-types-you-can-trust.typ"
+#include "chapters/03-failure-in-the-type.typ"

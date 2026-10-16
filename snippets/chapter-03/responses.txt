@@ -1,0 +1,7 @@
+$ curl -X PUT localhost:8787/orders/o1 \
+    -d '{"sku":"widget","qty":3,"cents":2500}'
+201 {"sku":"widget","qty":3,"cents":2500}
+
+$ curl -X PUT localhost:8787/orders/o2 \
+    -d '{"sku":"widget","qty":1000,"cents":20000}'
+422 {"error":"the order comes to more than 100,000.00"}

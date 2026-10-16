@@ -26,11 +26,14 @@ the issue, as `brief.md` asks.
    A `commons` (`shop.values`), records, `opaque` and refined types,
    admission at the boundary, who may mint an opaque value (`.unsafe` only in
    its commons; total constructors over a refined `Label`), `Json.decode`. A
-   first unit test. Enums wait for chapter 3, where `OrderError` needs one.
+   first unit test.
    *Replaces:* branded types, and hand-rolled validation or a schema library.
    *Shop:* `shop.values` and `OrderLine` (bynk-lang/shop#5).
 3. **Failure in the type, and effects**
-   Enums, `Result`, `Option`, exhaustive `match`, `?`, mapping to HTTP status. Then
+   Sum types (`OrderError`, with a payload; `enum` named as the payloadless
+   spelling), `Result`, exhaustive `match`, `?` and `embeds`, mapping to HTTP
+   status explicitly. *Shop:* `total` re-admits `qty * cents` as `Cents`, so an
+   order over 100,000.00 is a `422` (bynk-lang/shop#6). Then
    `Effect`, `<-` and `given`, and the send grid: `let _ <-` waits, `~>` does
    not, and `Effect[()]` is not `void` (a durable write must be awaited).
    *Replaces:* `throw` and `try`/`catch`, and `async`/`await` by habit.
@@ -39,7 +42,8 @@ the issue, as `brief.md` asks.
 
 4. **An agent is a Durable Object**
    Keyed agents, `Cell`, `update`, zeroable state, one owner. An opaque value
-   has no zero, so `Order` keeps its line as `Option[OrderLine]`.
+   has no zero, so `Order` keeps its line as `Option[OrderLine]`: `Option` is
+   taught here.
    *Replaces:* a Durable Object class and its storage calls. *Shop:* `Inventory`.
 5. **Other kinds of storage**
    `Map`, `Query[T]`, `Log` with `@retain`, `Cache` with `@ttl`, and `Kv`.
@@ -54,7 +58,7 @@ the issue, as `brief.md` asks.
    shop has no natural use for them.
    *Replaces:* KV, and ad hoc indexing.
 6. **State with a lifecycle**
-   State machines, initial variants, invariants. A history property
+   State machines (`Status`, the first `enum`), initial variants, invariants. A history property
    (`for all run: History[Order]`) proves the machine.
    *Replaces:* status strings and defensive checks. *Shop:* `Order`, and the
    stock invariant.
