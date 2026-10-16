@@ -7,7 +7,7 @@ match `bynk-lang/shop`; a script that diffs them is a follow-up.
 | Ch | Snippet projects (planned) | Shop file | Book pages to link |
 | -- | -- | -- | -- |
 | 1 | `chapter-01/hello` (written, gated) | | tutorials 01, 02; guides/projects-build-and-deployment/start-a-project, layout |
-| 2 | `chapter-02/*` | `orders.bynk` types | guides/type-system, type-system/decode-json |
+| 2 | `chapter-02/shop` (written, gated), `minted` and `empty-sku` (refusals), `conventional*.ts` | `values.bynk`, `orders.bynk` (`OrderLine`) | guides/type-system, type-system/decode-json |
 | 3 | `chapter-03/*` | `orders.bynk` handlers | guides/type-system/result-and-optionals, effects-and-capabilities/synchronous-and-asynchronous-sends |
 | 4 | `chapter-04/*` | `inventory.bynk` | guides/agents-and-state |
 | 5 | `chapter-05/*`, plus standalone `Log`, `Cache` and `Kv` snippets | `inventory.bynk` (`holds`, without `at`) | guides/agents-and-state; reference/agents |
@@ -27,4 +27,5 @@ match `bynk-lang/shop`; a script that diffs them is a follow-up.
 - `scripts/check-final-matches-shop.sh`: diff the final chapter's project
   against `bynk-lang/shop` so the book can't drift from the example.
 - `make-book-diffs.sh` prints the delta from one chapter's project to the next,
-  which is a tutorial's shape. Use it from chapter 2 on.
+  which is a tutorial's shape. Use it from chapter 3 on: chapter 2's project is
+  the first shop project, not a delta from `chapter-01/hello`.

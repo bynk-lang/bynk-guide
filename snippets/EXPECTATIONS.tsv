@@ -7,3 +7,5 @@
 # warn: the project must compile with this warning.
 # build-fail: `bynkc check` accepts the project, and building it must refuse it
 # with this code. scripts/check-book-emit.sh asserts the refusal.
+chapter-02/minted	fail	bynk.types.opaque_unsafe_outside
+chapter-02/empty-sku	fail	bynk.refine.literal_violates

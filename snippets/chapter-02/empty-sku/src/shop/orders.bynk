@@ -1,0 +1,9 @@
+context shop.orders
+
+uses shop.values
+
+type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+
+fn sample() -> OrderLine {
+	OrderLine { sku: skuFrom(""), qty: 1, cents: 100 }
+}

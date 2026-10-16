@@ -23,11 +23,14 @@ the issue, as `brief.md` asks.
    compiles silently as a literal; a one-armed `if` statement is `do if`.
    *Replaces:* a `fetch` handler and a `wrangler.toml`.
 2. **Types you can trust**
-   Records, enums, `opaque` types, refined types, admission at the boundary,
-   `Json.decode`. A first unit test.
+   A `commons` (`shop.values`), records, `opaque` and refined types,
+   admission at the boundary, who may mint an opaque value (`.unsafe` only in
+   its commons; total constructors over a refined `Label`), `Json.decode`. A
+   first unit test. Enums wait for chapter 3, where `OrderError` needs one.
    *Replaces:* branded types, and hand-rolled validation or a schema library.
+   *Shop:* `shop.values` and `OrderLine` (bynk-lang/shop#5).
 3. **Failure in the type, and effects**
-   `Result`, `Option`, exhaustive `match`, `?`, mapping to HTTP status. Then
+   Enums, `Result`, `Option`, exhaustive `match`, `?`, mapping to HTTP status. Then
    `Effect`, `<-` and `given`, and the send grid: `let _ <-` waits, `~>` does
    not, and `Effect[()]` is not `void` (a durable write must be awaited).
    *Replaces:* `throw` and `try`/`catch`, and `async`/`await` by habit.
@@ -35,7 +38,8 @@ the issue, as `brief.md` asks.
 ## Part II: State
 
 4. **An agent is a Durable Object**
-   Keyed agents, `Cell`, `update`, zeroable state, one owner.
+   Keyed agents, `Cell`, `update`, zeroable state, one owner. An opaque value
+   has no zero, so `Order` keeps its line as `Option[OrderLine]`.
    *Replaces:* a Durable Object class and its storage calls. *Shop:* `Inventory`.
 5. **Other kinds of storage**
    `Map`, `Query[T]`, `Log` with `@retain`, `Cache` with `@ttl`, and `Kv`.

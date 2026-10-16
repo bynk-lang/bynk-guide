@@ -23,3 +23,4 @@
 #set heading(numbering: "1")
 
 #include "chapters/01-a-worker-in-bynk.typ"
+#include "chapters/02-types-you-can-trust.typ"

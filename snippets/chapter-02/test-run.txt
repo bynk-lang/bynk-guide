@@ -1,0 +1,8 @@
+Running tests...
+
+shop.orders:
+  ✓ a line that fits its types is admitted
+  ✓ a zero quantity is refused
+  ✓ the route answers with the line it was given
+
+3 passed, 0 failed.
