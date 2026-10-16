@@ -1,0 +1,38 @@
+suite shop.payments
+case "a charge within the limit is approved" {
+	stub Secrets.get("PAYMENTS_PROCESSOR") returns Some("fake")
+	let r <- authorise.call(
+		orderIdFrom("o1"),
+		2500
+	) by Caller("shop.orders")
+	expect r is Ok("fake_o1")
+}
+
+case "a charge over 1,000.00 is declined" {
+	stub Secrets.get("PAYMENTS_PROCESSOR") returns Some("fake")
+	let r <- authorise.call(
+		orderIdFrom("o1"),
+		100001
+	) by Caller("shop.orders")
+	expect r is Err(Declined)
+}
+
+case "with no processor configured, a charge is unavailable" {
+	let r <- authorise.call(
+		orderIdFrom("o1"),
+		2500
+	) by Caller("shop.orders")
+	expect r is Err(Unavailable)
+	expect Secrets.get called once with name == "PAYMENTS_PROCESSOR"
+}
+
+case "authorise hands the order id to the processor as its reference" {
+	stub Processor.charge(_, _) returns Ok("auth_1")
+	let r <- authorise.call(
+		orderIdFrom("o2"),
+		2500
+	) by Caller("shop.orders")
+	expect r is Ok("auth_1")
+	expect Processor.charge called once
+	expect Processor.charge called with reference == "o2" && cents == 2500
+}

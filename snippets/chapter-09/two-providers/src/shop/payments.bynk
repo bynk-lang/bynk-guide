@@ -1,0 +1,73 @@
+context shop.payments
+
+uses shop.values
+consumes bynk { Secrets }
+exports transparent { PayError }
+
+---
+Why a charge was refused. `Declined` is the card's answer; `Unavailable`
+means the processor couldn't be asked, so the customer may try again.
+---
+type PayError = enum { Declined, Unavailable }
+
+---
+The card processor. A capability is an interface the handlers use without
+knowing what provides it. `charge` returns the processor's id for the
+authorisation; `reference` is the order id, so the processor can tell a
+retry from a second charge.
+---
+capability Processor {
+	fn charge(
+		reference: String,
+		cents: Int
+	) -> Effect[Result[String, PayError]]
+}
+
+---
+The one provider of `Processor`. With `PAYMENTS_PROCESSOR=fake` it charges
+with `fakeCharge`; with anything else, including nothing, it refuses, so a
+deployment that forgets the setting fails closed rather than approving
+every charge. Chapter 10 adds the real processor.
+---
+provides Processor = CardProcessor given Secrets {
+	fn charge(
+		reference: String,
+		cents: Int
+	) -> Effect[Result[String, PayError]] {
+		let which <- Secrets.get("PAYMENTS_PROCESSOR")
+		match which {
+			Some("fake") => fakeCharge(reference, cents),
+			_ => Err(Unavailable),
+		}
+	}
+}
+
+---
+A second provider, for local runs.
+---
+provides Processor = FakeProcessor {
+	fn charge(
+		reference: String,
+		cents: Int
+	) -> Effect[Result[String, PayError]] { fakeCharge(reference, cents) }
+}
+
+---
+The fake processor, for tests and local runs: a charge over 1,000.00 is
+declined, and the authorisation id is made from the order id.
+---
+fn fakeCharge(reference: String, cents: Int) -> Result[String, PayError] {
+	if cents > 100000 { Err(Declined) } else { Ok("fake_\(reference)") }
+}
+
+---
+Authorise a charge for an order.
+---
+service authorise {
+	on call(
+		order: OrderId,
+		cents: Cents
+	) -> Effect[Result[String, PayError]] by c: Caller given Processor {
+		Processor.charge(orderRef(order), cents)
+	}
+}

@@ -36,3 +36,4 @@
 
 #include "chapters/07-actors.typ"
 #include "chapters/08-contexts-and-service-bindings.typ"
+#include "chapters/09-capabilities-and-providers.typ"

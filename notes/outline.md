@@ -108,11 +108,17 @@ the issue, as `brief.md` asks.
    *Replaces:* Service Binding glue and hand-typed RPC. *Shop:* orders,
    inventory, payments.
 9. **Capabilities and providers**
-   `given`, first-party capabilities (`Logger`, `Secrets`, `Fetch`, `Clock`),
-   a provider you can swap, `stub` and observation in a unit test, and a
-   platform context that exports a capability.
-   *Replaces:* reading `env` directly, and mocks. *Shop:* `Processor` with the
-   fake rule, and `authorise` taking the order id so a retry is recognisable.
+   `capability Processor`, one provider `CardProcessor given Secrets` that
+   uses `fakeCharge` when `PAYMENTS_PROCESSOR=fake` and fails closed
+   (`Unavailable`, a `503`) otherwise; `authorise` is `given Processor`.
+   `Secrets` returns an `Option`. Tests `stub` `Secrets.get` and
+   `Processor.charge` and observe with `expect … called`. The `bynk` and
+   `bynk.cloudflare` surfaces, and `exports capability` (prose only).
+   Refusals: a second provider (`bynk.resolve.duplicate_provider`), and a
+   provider missing an operation (`bynk.provider.missing_operation`). Two
+   transcripts of one project, with and without the setting.
+   *Replaces:* reading `env` directly, and `vi.mock`. *Shop:* `Processor`,
+   `CardProcessor`, `PayError.Unavailable` and the `503`.
 10. **The host boundary**
     An `adapter` and its TypeScript binding, with `Fetch` and `Secrets` as
     by-name deps: the binding maps a real-shaped processor API's responses to

@@ -23,3 +23,5 @@ chapter-07/admin-in-sum	fail	bynk.actor.refinement_in_sum
 chapter-07/visitor-first	fail	bynk.actor.unreachable_sum_arm
 chapter-08/agent-across	fail	bynk.consumes.unknown_service
 chapter-08/cycle	fail	bynk.context.consumes_cycle
+chapter-09/two-providers	fail	bynk.resolve.duplicate_provider
+chapter-09/missing-operation	fail	bynk.provider.missing_operation
