@@ -1,0 +1,2 @@
+$ curl localhost:8787/hello/Ada
+200 "Hello, ${name}!"

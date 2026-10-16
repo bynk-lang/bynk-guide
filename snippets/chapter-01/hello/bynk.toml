@@ -1,9 +1,10 @@
-# Compiler-tested source for chapter 1.
+# Bynk project manifest — marks the project root for `bynkc` and the LSP.
 [project]
-name = "chapter-01-hello"
+name = "hello"
 version = "0.1.0"
 
-[fmt]
-indent = "tab"
-max_line_width = 80
-trailing_comma = true
+# Trees to compile (`include`) and subtrees to skip (`exclude`), relative to
+# this file. These are the only `[paths]` keys the tools read; omitting the
+# section entirely also works (the conventional `src`/`tests` roots apply).
+[paths]
+include = ["src", "tests"]

@@ -72,8 +72,9 @@ same ideas in the language, where the compiler can hold you to them.#footnote[
 == A vocabulary for the shop <ix-guide-02-a-vocabulary-for-the-shop>
 
 The shop is a new project, set up as chapter 1 showed: a `bynk.toml`
-naming it `shop`, and its sources under `src/shop/`. The rest of the book
-grows this one project.
+naming it `shop`. Its units are named `shop.…`, so by the path rule from
+chapter 1 their files live under `src/shop/`. The rest of the book grows
+this one project.
 
 #lead-in[
 Start with the values the shop cares about, not with the request. Create

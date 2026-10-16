@@ -1,0 +1,8 @@
+$ bynk dev
+bynk dev: serving 1 context.
+  hello  http://localhost:8787
+bynk dev: watching for source changes (edit `.bynk` files to rebuild)
+…
+[wrangler:info] Ready on http://localhost:8787
+hello from hello
+[wrangler:info] GET / 200 OK (24ms)

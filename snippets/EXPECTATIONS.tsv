@@ -9,3 +9,5 @@
 # with this code. scripts/check-book-emit.sh asserts the refusal.
 chapter-02/minted	fail	bynk.types.opaque_unsafe_outside
 chapter-02/empty-sku	fail	bynk.refine.literal_violates
+chapter-01/no-status	fail	bynk.types.return_mismatch
+chapter-01/one-armed-if	fail	bynk.parse.expected_token

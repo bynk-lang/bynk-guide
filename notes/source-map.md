@@ -6,7 +6,7 @@ match `bynk-lang/shop`; a script that diffs them is a follow-up.
 
 | Ch | Snippet projects (planned) | Shop file | Book pages to link |
 | -- | -- | -- | -- |
-| 1 | `chapter-01/hello` (written, gated) | | tutorials 01, 02; guides/projects-build-and-deployment/start-a-project, layout |
+| 1 | `chapter-01/hello` (the `bynk new` scaffold), `greet`, `dollar`, `no-status` and `one-armed-if` (refusals), `conventional*`, `emitted/` (not gated), `dev-output.txt` (not gated); transcripts `greet-responses.txt`, `dollar-responses.txt` | | introduction/install; guides/projects-build-and-deployment/start-a-project, layout, run-locally, cloudflare-workers, why-compile-to-typescript |
 | 2 | `chapter-02/shop` (written, gated), `minted` and `empty-sku` (refusals), `conventional*.ts` | `values.bynk`, `orders.bynk` (`OrderLine`) | guides/type-system, type-system/decode-json |
 | 3 | `chapter-03/*` | `orders.bynk` handlers | guides/type-system/result-and-optionals, effects-and-capabilities/synchronous-and-asynchronous-sends |
 | 4 | `chapter-04/*` | `inventory.bynk` | guides/agents-and-state |
