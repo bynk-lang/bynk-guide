@@ -13,6 +13,11 @@
 # (kind `test`), and the output from `Running tests...` on must match it
 # exactly. Anything before that line is the compile step's and is not quoted.
 #
+# A project whose adapter binding is TypeScript can test the binding as
+# TypeScript, in tests/bindings/*.test.cjs, against the out-js/ build that
+# `bynkc test` leaves behind; a Bynk test can't reach a binding at 0.330.4
+# (bynk-lang/bynk#1975). Those run with `node --test` after the suite passes.
+#
 # Each project runs on a copy with no out/ or out-js/, so a stale runner never
 # answers for the current sources and the checkout is left untouched.
 #
@@ -78,6 +83,13 @@ while IFS= read -r toml; do
     problem="no test summary in the output"
   elif ! printf '%s' "$summary" | grep -q ' 0 failed\.$'; then
     problem="a case failed"
+  fi
+  if [ -z "$problem" ] && compgen -G "$copy/tests/bindings/*.test.cjs" >/dev/null; then
+    if ! out="$(cd "$copy" && node --test tests/bindings/*.test.cjs 2>&1)"; then
+      problem="a binding test failed"
+    else
+      summary="$summary $(printf '%s\n' "$out" | sed -n 's/^ℹ pass \([0-9]*\)$/\1/p') binding tests passed."
+    fi
   fi
   if [ -n "$problem" ]; then
     printf 'FAIL    %-42s %s\n' "$rel" "$problem"

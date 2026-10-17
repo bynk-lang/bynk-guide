@@ -1,0 +1,7 @@
+# Intentionally rejected source for chapter 10: a context providing an adapter's capability.
+[project]
+name = "shop"
+version = "0.1.0"
+
+[fmt]
+max_line_width = 74

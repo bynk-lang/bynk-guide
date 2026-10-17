@@ -25,3 +25,5 @@ chapter-08/agent-across	fail	bynk.consumes.unknown_service
 chapter-08/cycle	fail	bynk.context.consumes_cycle
 chapter-09/two-providers	fail	bynk.resolve.duplicate_provider
 chapter-09/missing-operation	fail	bynk.provider.missing_operation
+chapter-10/adapter-service	fail	bynk.adapter.disallowed_item
+chapter-10/context-provider	fail	bynk.provider.unknown_capability
