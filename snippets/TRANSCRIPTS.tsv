@@ -1,5 +1,5 @@
 # Transcripts the chapters quote from running code.
-# Columns (tab-separated): <transcript under snippets/>	<test|http|emit>	<project under snippets/>
+# Columns (tab-separated): <transcript under snippets/>	<test|http|emit|plan>	<project under snippets/>
 # and, for emit only: 	<target>	<path under out/>[	<from>[	<to>]]
 #
 # test: the `bynkc test .` output of the project, from its `Running tests...`
