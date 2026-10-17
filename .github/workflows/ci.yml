@@ -48,6 +48,8 @@ jobs:
         # Chapters print diffs between snippet projects. They are generated
         # files; this fails if a snippet changed without regenerating them.
         run: ./scripts/make-book-diffs.sh --check
+      - name: Check the issues appendix lists every cited issue
+        run: ./scripts/check-book-issues.sh
       - name: Build the manuscript
         run: ./scripts/build-book.sh
       - name: Upload the manuscript PDF

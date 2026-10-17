@@ -3,7 +3,7 @@
   subtitle: "A guide for TypeScript and Cloudflare developers",
   author: "Matthew Gibbons",
   language: "en-GB",
-  status: "Working manuscript",
+  status: "Review draft",
   year: "2026",
   // The Bynk release every example was checked against. CI requires it to
   // match the pinned BYNK_VERSION in .github/workflows/snippets.yml.
