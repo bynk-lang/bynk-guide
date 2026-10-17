@@ -220,7 +220,12 @@ the issue, as `brief.md` asks.
 
 ## Epilogue: Where to go next
 
-The Book, *Architecture that compiles*, the examples index, the canary.
+Unnumbered (`chapters/epilogue.typ`). A table of what each chapter replaced.
+The Bynk Book, and what this book left to it (WebSockets, `Oidc`,
+localisation, static assets, the `bundle` target, the editor). *Architecture
+that compiles*. Real programs: the shop, compat-board, examples, status. The
+canary, and pinning a project's own version the same way. This book's pin
+and the fixes waiting on a release. When the pin moves, revise its list.
 
 ## Not covered
 

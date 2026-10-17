@@ -49,3 +49,6 @@
 #include "chapters/13-events.typ"
 #include "chapters/14-time-and-queues.typ"
 #include "chapters/15-changing-a-deployed-system.typ"
+
+#set heading(numbering: none)
+#include "chapters/epilogue.typ"
