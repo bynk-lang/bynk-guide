@@ -189,14 +189,19 @@ the issue, as `brief.md` asks.
     When the pin moves: restore a `system` suite, try the deploy, and drop
     the baseline line.
 14. **Time and queues**
-    Cron, and queue consumers. *Shop:* each hold gains `at: Instant` from
-    `Clock`, and `service sweeper from cron` releases holds older than 15
-    minutes, measured from the scheduled time. Durable Objects can't be listed,
-    so a `Catalogue` agent records each stocked sku. Orders now commit a hold
-    after payment, and a hold the sweeper already released is a
-    `409 reservation expired` rather than an oversell. The gateway can't void
-    the authorisation yet; say so. Testing with `--test-scheduled` and
-    `/__scheduled`. This closes the gap chapter 8 left open.
+    Holds gain `at: Instant` from `Clock`; `commit` turns a hold into a sale,
+    and orders commits after payment (`409 reservation expired` if the
+    sweeper got there first; the gateway can't void yet). A `Catalogue` agent
+    lists the skus, since Durable Objects can't be listed. `service sweeper
+    from cron` releases holds older than 15 minutes, measured from the
+    scheduled time. Refusal: `bynk.cron.bad_params` (an `Instant`
+    parameter). The generated `[triggers]` and `[[queues.consumers]]`
+    (gated). `--test-scheduled` and `/__scheduled` (transcript), and
+    `.schedule` in tests. A queue: `service deliveries from
+    queue("stock-deliveries")`, deduped by delivery id in a `Log` in the
+    agent; tested with `.message`. Bynk can't produce queue messages at
+    0.330.4. *Replaces:* a hand-written `scheduled` handler and queue
+    consumer. Closes chapter 8's gap.
 15. **Changing a deployed system**
     The schema lock, migrations of agent state, contract skew. Not light: this
     reader has migrated Durable Object storage by hand. Honest about what 1.0 is

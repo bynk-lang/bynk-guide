@@ -1,0 +1,146 @@
+suite shop.inventory
+case "restocking adds to what is available" {
+	let sku = skuFrom("w1")
+	let stocked <- Inventory(sku).restock(10)
+	expect stocked == 10
+}
+
+case "a reservation holds stock for its order, once" {
+	let sku = skuFrom("w2")
+	let order = orderIdFrom("o3")
+	let _ <- Inventory(sku).restock(10)
+	let first <- Inventory(sku).reserve(order, 3)
+	expect first is Ok(_)
+	let again <- Inventory(sku).reserve(order, 3)
+	expect again is Ok(_)
+	let left <- Inventory(sku).level()
+	expect left == 7
+	let held <- Inventory(sku).held()
+	expect held == 3
+}
+
+case "more than is available is refused, and takes nothing" {
+	let sku = skuFrom("w3")
+	let _ <- Inventory(sku).restock(2)
+	let r <- Inventory(sku).reserve(orderIdFrom("o4"), 3)
+	expect r is Err(Insufficient)
+	let left <- Inventory(sku).level()
+	expect left == 2
+}
+
+case "releasing a hold puts its stock back, once" {
+	let sku = skuFrom("w4")
+	let order = orderIdFrom("o7")
+	let _ <- Inventory(sku).restock(10)
+	let _ <- Inventory(sku).reserve(order, 4)
+	let first <- Inventory(sku).release(order)
+	expect first == 10
+	let second <- Inventory(sku).release(order)
+	expect second == 10
+}
+
+case "another context reserves through the service" {
+	let sku = skuFrom("w6")
+	let _ <- restock.call(sku, 5) by Caller("shop.orders")
+	let r <- reserve.call(
+		sku,
+		orderIdFrom("o9"),
+		2
+	) by Caller("shop.orders")
+	expect r is Ok(_)
+	let left <- level.call(sku) by Caller("shop.orders")
+	expect left == 3
+}
+
+case "a reservation, with its real collaborators" as integration {
+	let sku = skuFrom("w7")
+	let order = orderIdFrom("o10")
+	let _ <- Inventory(sku).restock(10)
+	let first <- Inventory(sku).reserve(order, 3)
+	expect first is Ok(_)
+	let held <- Inventory(sku).held()
+	expect held == 3
+}
+
+-- Committing a hold, and the sweeper that releases the ones nobody
+-- committed.
+
+case "a committed hold is sold, and can't be released" {
+	let w = skuFrom("w5")
+	let _ <- Inventory(w).restock(10)
+	let _ <- Inventory(w).reserve(orderIdFrom("o1"), 3)
+	let sold <- Inventory(w).commit(orderIdFrom("o1"))
+	expect sold is Ok(_)
+	let after <- Inventory(w).release(orderIdFrom("o1"))
+	expect after == 7
+}
+
+case "a hold that is gone can't be committed" {
+	let w = skuFrom("w6")
+	let _ <- Inventory(w).restock(10)
+	let _ <- Inventory(w).reserve(orderIdFrom("o1"), 3)
+	let _ <- Inventory(w).release(orderIdFrom("o1"))
+	let sold <- Inventory(w).commit(orderIdFrom("o1"))
+	expect sold is Err(NoHold)
+}
+
+case "a hold is stale only once it is older than the cutoff" {
+	-- Under test, `Clock.now()` reads the epoch, so the hold is made at 0.
+	let w = skuFrom("w8")
+	let _ <- Inventory(w).restock(10)
+	let _ <- Inventory(w).reserve(orderIdFrom("o1"), 2)
+	let none <- Inventory(w).releaseStale(Instant.fromEpochMillis(0))
+	expect none == 0
+	let units <- Inventory(w).releaseStale(Instant.fromEpochMillis(1))
+	expect units == 2
+	let gone <- Inventory(w).commit(orderIdFrom("o1"))
+	expect gone is Err(NoHold)
+}
+
+case "the sweeper releases a hold older than fifteen minutes" {
+	-- The hold is made at the epoch; the run is scheduled 16 minutes on.
+	let w = skuFrom("w11")
+	let _ <- restock.call(w, 10) by Caller("shop.orders")
+	let _ <- reserve.call(w, orderIdFrom("o1"), 4) by Caller("shop.orders")
+	let r <- sweeper.schedule("*/5 * * * *", 960000)
+	expect r is Ok(_)
+	let left <- level.call(w) by Caller("shop.orders")
+	expect left == 10
+	expect Logger.info called with msg == "released 4 held units"
+}
+
+case "the sweeper leaves a fresh hold, and a sold one, alone" {
+	let w = skuFrom("w12")
+	let fresh = orderIdFrom("fresh")
+	let sold = orderIdFrom("sold")
+	let _ <- restock.call(w, 10) by Caller("shop.orders")
+	let _ <- reserve.call(w, fresh, 2) by Caller("shop.orders")
+	let _ <- reserve.call(w, sold, 3) by Caller("shop.orders")
+	let _ <- commit.call(w, sold) by Caller("shop.orders")
+	-- Fourteen minutes on: "fresh" isn't stale, and "sold" holds nothing.
+	let r <- sweeper.schedule("*/5 * * * *", 840000)
+	expect r is Ok(_)
+	let left <- level.call(w) by Caller("shop.orders")
+	expect left == 5
+	expect Logger.info never called
+}
+
+-- The warehouse's deliveries, from the queue.
+
+case "a delivery is stocked, and the sweeper can find it" {
+	let d = Delivery { id: "d1", sku: skuFrom("w13"), qty: 6 }
+	let r <- deliveries.message(d)
+	expect r is Ack
+	let left <- Inventory(skuFrom("w13")).level()
+	expect left == 6
+	let skus <- Catalogue("all").all()
+	expect skus.any((s) => s == skuFrom("w13"))
+}
+
+case "a delivery that arrives twice is stocked once" {
+	let d = Delivery { id: "d2", sku: skuFrom("w14"), qty: 6 }
+	let _ <- deliveries.message(d)
+	let _ <- deliveries.message(d)
+	let left <- Inventory(skuFrom("w14")).level()
+	expect left == 6
+}
