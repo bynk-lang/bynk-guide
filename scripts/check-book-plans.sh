@@ -10,6 +10,10 @@
 # snippets/TRANSCRIPTS.tsv names and diffs its output against the chapter's
 # copy.
 #
+# A dry run that refuses the project is quoted the same way: the transcript is
+# whatever the dry run prints, so a chapter can show a refusal, and the exit
+# status isn't checked.
+#
 # A dry run makes no Cloudflare calls and needs no account or token. A row may
 # give a fourth column of extra `bynk deploy` arguments, such as `--env staging`,
 # split on spaces.
@@ -64,19 +68,13 @@ while IFS=$'\t' read -r t k p a; do
   [ -z "${a:-}" ] || read -ra local_args <<<"$a"
   out="$(cd "$copy" && NO_COLOR=1 "$BYNK" deploy --dry-run "${local_args[@]}" </dev/null 2>&1)"
   rc=$?
-  if [ "$rc" -ne 0 ]; then
-    printf 'FAIL    %-42s %s\n' "$t" "bynk deploy --dry-run exited $rc"
-    printf '%s\n' "$out" | sed 's/^/          | /'
-    fail=1
-    continue
-  fi
   if ! d="$(diff -u --label "$t (quoted)" --label "$t (bynk deploy --dry-run)" \
     "$SNIPPETS/$t" <(printf '%s\n' "$out"))"; then
-    printf 'FAIL    %-42s %s\n' "$t" "the quoted plan no longer matches"
+    printf 'FAIL    %-42s %s\n' "$t" "the quoted plan no longer matches (exit $rc)"
     printf '%s\n' "$d" | sed 's/^/          | /'
     fail=1
   else
-    printf '  ok    %-42s %s\n' "$t" "plan for $p"
+    printf '  ok    %-42s %s\n' "$t" "plan for $p (exit $rc)"
   fi
 done <"$TRANSCRIPTS"
 

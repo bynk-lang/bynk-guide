@@ -5,4 +5,7 @@
 # fails today; it is reported without failing the gate.
 #
 # This is a ratchet: a listed build that starts to pass fails the gate with a
-# note to delete its line, so the list can only shrink. Empty.
+# note to delete its line, so the list can only shrink.
+#
+# Columns (tab-separated): <path under snippets/>	<target>	<why>
+chapter-13/shop	workers	bynk-lang/bynk#2027: the ledger's subscriber serialiser names the unimported namespace shop_orders

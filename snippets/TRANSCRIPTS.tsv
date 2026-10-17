@@ -21,7 +21,8 @@
 # ends, where an editor would strip them. Selected lines lose the indentation
 # they share. scripts/check-book-emitted.sh compiles the project and diffs.
 # plan: what `bynk deploy --dry-run` prints for the project, with any extra
-# arguments in a fourth column (`--env staging`). No Cloudflare calls are made.
+# arguments in a fourth column (`--env staging`). A refusal is quoted the same
+# way. No Cloudflare calls are made.
 # scripts/check-book-plans.sh runs it on a copy and diffs.
 chapter-02/test-run.txt	test	chapter-02/shop
 chapter-02/responses.txt	http	chapter-02/shop
@@ -55,3 +56,8 @@ chapter-12/unavailable.txt	http	chapter-12/shop	--var AUTH_JWT_SECRET:not-a-secr
 chapter-12/emitted/fault.ts	emit	chapter-12/shop	workers	workers/shop-orders/index.ts	} catch (e) {	status: 500
 chapter-12/plan-spread.txt	plan	chapter-12/shop	--secret PAYMENTS_API_KEY
 chapter-12/plan-payments.txt	plan	chapter-12/shop	--context shop.payments --secret PAYMENTS_API_KEY
+chapter-13/cycle.txt	plan	chapter-13/shop
+chapter-13/test-run.txt	test	chapter-13/shop
+chapter-13/responses.txt	http	chapter-13/shop	--var AUTH_JWT_SECRET:not-a-secret --var PAYMENTS_WEBHOOK_SECRET:not-a-webhook-secret --var PAYMENTS_PROCESSOR:fake
+chapter-13/emitted/dispatch.ts	emit	chapter-13/shop	workers	workers/shop-orders/handlers.ts	if (__events.length > 0) {	}
+chapter-13/emitted/deliver.ts	emit	chapter-13/shop	workers	workers/shop-orders/events_fanout.ts	try {	} catch (e) {
