@@ -46,3 +46,4 @@ chapter-09/responses.txt	http	chapter-09/shop	--var AUTH_JWT_SECRET:not-a-secret
 chapter-09/unconfigured.txt	http	chapter-09/shop	--var AUTH_JWT_SECRET:not-a-secret
 chapter-10/test-run.txt	test	chapter-10/shop
 chapter-10/responses.txt	http	chapter-10/shop	--var AUTH_JWT_SECRET:not-a-secret --var PAYMENTS_WEBHOOK_SECRET:not-a-webhook-secret --var PAYMENTS_PROCESSOR:fake
+chapter-11/test-run.txt	test	chapter-11/shop

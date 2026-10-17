@@ -38,3 +38,7 @@
 #include "chapters/08-contexts-and-service-bindings.typ"
 #include "chapters/09-capabilities-and-providers.typ"
 #include "chapters/10-the-host-boundary.typ"
+
+#part-page(4, [Confidence and delivery])
+
+#include "chapters/11-testing-at-three-tiers.typ"
