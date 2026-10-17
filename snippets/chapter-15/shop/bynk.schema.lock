@@ -1,0 +1,52 @@
+version = 1
+
+[events."shop.orders.OrderCancelled"]
+schema = 1
+
+[[events."shop.orders.OrderCancelled".fields]]
+name = "cents"
+type = "Cents"
+default = false
+
+[[events."shop.orders.OrderCancelled".fields]]
+name = "orderId"
+type = "OrderId"
+default = false
+
+[[events."shop.orders.OrderCancelled".fields]]
+name = "qty"
+type = "Quantity"
+default = false
+
+[[events."shop.orders.OrderCancelled".fields]]
+name = "sku"
+type = "Sku"
+default = false
+
+[events."shop.orders.OrderPlaced"]
+schema = 2
+
+[[events."shop.orders.OrderPlaced".fields]]
+name = "cents"
+type = "Cents"
+default = false
+
+[[events."shop.orders.OrderPlaced".fields]]
+name = "customer"
+type = "String"
+default = true
+
+[[events."shop.orders.OrderPlaced".fields]]
+name = "orderId"
+type = "OrderId"
+default = false
+
+[[events."shop.orders.OrderPlaced".fields]]
+name = "qty"
+type = "Quantity"
+default = false
+
+[[events."shop.orders.OrderPlaced".fields]]
+name = "sku"
+type = "Sku"
+default = false
