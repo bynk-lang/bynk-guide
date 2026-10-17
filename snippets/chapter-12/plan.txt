@@ -1,0 +1,9 @@
+durable object Inventory (sqlite; advisory — Cloudflare reconciles it)
+deploy shop-inventory
+durable object Payment (sqlite; advisory — Cloudflare reconciles it)
+secret set PAYMENTS_WEBHOOK_SECRET (declared)
+deploy shop-payments
+durable object Order (sqlite; advisory — Cloudflare reconciles it)
+secret set AUTH_JWT_SECRET (declared)
+deploy shop-orders
+order shop-inventory → shop-payments → shop-orders

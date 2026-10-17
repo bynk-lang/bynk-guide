@@ -1,0 +1,4 @@
+durable object Payment (sqlite; advisory — Cloudflare reconciles it)
+secret set PAYMENTS_API_KEY (supplied)
+secret set PAYMENTS_WEBHOOK_SECRET (declared)
+deploy shop-payments

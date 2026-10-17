@@ -1,0 +1,38 @@
+--- a/src/shop/payments.bynk
++++ b/src/shop/payments.bynk
+@@ -2,7 +2,7 @@
+ 
+ uses shop.values
+ consumes shop.gateway { Gateway }
+-consumes bynk { Clock, Secrets }
++consumes bynk { Clock, Logger, Secrets }
+ exports transparent { PayError }
+ 
+ ---
+@@ -31,9 +31,10 @@
+ dev`) charges with `fakeCharge`; anything else, including unset, goes to
+ the payment API through the `shop.gateway` adapter. Unset falls through to
+ the real processor, so a deployment that forgets the setting fails closed
+-(no API key, `Unavailable`) rather than approving every charge.
++(no API key, `Unavailable`) rather than approving every charge. Failing
++closed is quiet from outside, a `503` and nothing more, so it is logged.
+ ---
+-provides Processor = CardProcessor given Gateway, Secrets {
++provides Processor = CardProcessor given Gateway, Logger, Secrets {
+ 	fn charge(
+ 		reference: String,
+ 		cents: Int
+@@ -46,7 +47,12 @@
+ 				match r {
+ 					Ok(id) => Ok(id),
+ 					Err(GatewayError.Declined) => Err(PayError.Declined),
+-					Err(_) => Err(PayError.Unavailable),
++					Err(_) => {
++						let _ <- Logger.error(
++							"processor unavailable for \(reference)"
++						)
++						Err(PayError.Unavailable)
++					},
+ 				}
+ 			},
+ 		}

@@ -1,0 +1,21 @@
+suite shop.payments as system {
+	uses shop.values
+
+	case "with no processor configured, a charge fails closed over the wire" {
+		let cents: Cents = 2500
+		let r <- shop.payments.authorise(
+			orderIdFrom("o1"),
+			cents
+		) by Caller("shop.orders")
+		expect r is Err(PayError.Unavailable)
+	}
+
+	case "an unsigned notice is refused at the boundary" {
+		let n <- webhooks.POST("/webhooks/processor", WebhookEvent {
+			id: "evt_1",
+			event: "payment.captured",
+			payment: "auth_unknown",
+		})
+		expect n is Unauthorized
+	}
+}

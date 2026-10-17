@@ -1,0 +1,11 @@
+$ curl -X PUT localhost:8788/stock/widget -d '{"qty":10}' \
+    -H "Authorization: Bearer $ROOT"
+200 10
+
+$ curl -X PUT localhost:8788/orders/o1 \
+    -H "Authorization: Bearer $ALICE" \
+    -d '{"sku":"widget","qty":3,"cents":2500}'
+503 {"error":"payment unavailable"}
+
+$ curl localhost:8788/stock/widget -H "Authorization: Bearer $ALICE"
+200 {"kind":"Left","count":10}
