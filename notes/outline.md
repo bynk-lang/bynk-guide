@@ -136,12 +136,18 @@ the issue, as `brief.md` asks.
 ## Part IV: Confidence and delivery
 
 11. **Testing at three tiers**
-    Unit, integration and system tiers; `stub`; observation
-    (`expect Cap.op called …`); end-to-end against `bynk dev`, including signed
-    and forged webhooks. Teach the working forms: `expect r is Ok(v)`
-    (bynk-lang/bynk#1979), and `by Caller("…")` when a test calls a `by c: Caller`
-    service (bynk-lang/bynk#1978).
-    *Replaces:* vitest with miniflare, spies, and hand-wired integration tests.
+    `unit` (stubs, observation, properties, platform doubles), `integration`
+    (one word, same body), and `system` (a suite of its own, context-path
+    calls, participants from `consumes`, real JSON wire in Node). The `system`
+    example is payments: fail-closed over the wire, and an unsigned notice
+    refused at the boundary. Refusals: a unit case that crosses contexts
+    (`bynk.tier.cross_context_needs_system`), and a mixed suite
+    (`bynk.tier.mixed_system_suite`). Where `system` stops at 0.330.4: no
+    Worker with `~>` routes (fixed by bynk-lang/bynk#2005, unreleased),
+    stubs ignored (bynk-lang/bynk#2026), literal arguments not admitted
+    (bynk-lang/bynk#2025). Beyond `bynkc test`: binding tests and e2e against
+    `bynk dev`. Habits: `is` (#1979), `by Caller` (#1978), local names (#2024).
+    *Replaces:* vitest with Miniflare, spies, and hand-wired integration tests.
 12. **Run it, ship it, debug it**
     `bynk dev`, `bynk deploy`, lock files, secrets, environments, the CI
     actions. `bynk-secrets.json` can miss reads made in provider bodies and
@@ -157,6 +163,9 @@ the issue, as `brief.md` asks.
 
 13. **Events**
     Emit and subscribe, at-least-once delivery, `Idempotency`.
+    The ledger's Worker won't pass `tsc` while events carry commons types
+    (bynk-lang/bynk#2027): `check-book-emit.sh` will need a `build-fail` row
+    or a baseline for chapter 13's project until it is fixed.
     *Replaces:* hand-rolled queues and fan-out. *Shop:* the ledger. Says why the
     full shop can't deploy yet (bynk-lang/bynk#1961).
 14. **Time and queues**

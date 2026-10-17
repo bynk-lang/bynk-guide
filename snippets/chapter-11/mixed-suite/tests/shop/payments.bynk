@@ -1,0 +1,19 @@
+suite shop.payments {
+	case "a notice for an unknown payment, in process" {
+		let n <- webhooks.POST("/webhooks/processor", WebhookEvent {
+			id: "evt_1",
+			event: "payment.captured",
+			payment: "auth_unknown",
+		})
+		expect n is Conflict(_)
+	}
+
+	case "the same notice, over the wire" as system {
+		let n <- webhooks.POST("/webhooks/processor", WebhookEvent {
+			id: "evt_1",
+			event: "payment.captured",
+			payment: "auth_unknown",
+		})
+		expect n is Unauthorized
+	}
+}

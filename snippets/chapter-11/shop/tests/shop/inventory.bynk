@@ -1,0 +1,63 @@
+suite shop.inventory
+case "restocking adds to what is available" {
+	let sku = skuFrom("w1")
+	let stocked <- Inventory(sku).restock(10)
+	expect stocked == 10
+}
+
+case "a reservation holds stock for its order, once" {
+	let sku = skuFrom("w2")
+	let order = orderIdFrom("o3")
+	let _ <- Inventory(sku).restock(10)
+	let first <- Inventory(sku).reserve(order, 3)
+	expect first is Ok(_)
+	let again <- Inventory(sku).reserve(order, 3)
+	expect again is Ok(_)
+	let left <- Inventory(sku).level()
+	expect left == 7
+	let held <- Inventory(sku).held()
+	expect held == 3
+}
+
+case "more than is available is refused, and takes nothing" {
+	let sku = skuFrom("w3")
+	let _ <- Inventory(sku).restock(2)
+	let r <- Inventory(sku).reserve(orderIdFrom("o4"), 3)
+	expect r is Err(Insufficient)
+	let left <- Inventory(sku).level()
+	expect left == 2
+}
+
+case "releasing a hold puts its stock back, once" {
+	let sku = skuFrom("w4")
+	let order = orderIdFrom("o7")
+	let _ <- Inventory(sku).restock(10)
+	let _ <- Inventory(sku).reserve(order, 4)
+	let first <- Inventory(sku).release(order)
+	expect first == 10
+	let second <- Inventory(sku).release(order)
+	expect second == 10
+}
+
+case "another context reserves through the service" {
+	let sku = skuFrom("w6")
+	let _ <- restock.call(sku, 5) by Caller("shop.orders")
+	let r <- reserve.call(
+		sku,
+		orderIdFrom("o9"),
+		2
+	) by Caller("shop.orders")
+	expect r is Ok(_)
+	let left <- level.call(sku) by Caller("shop.orders")
+	expect left == 3
+}
+
+case "a reservation, with its real collaborators" as integration {
+	let sku = skuFrom("w7")
+	let order = orderIdFrom("o10")
+	let _ <- Inventory(sku).restock(10)
+	let first <- Inventory(sku).reserve(order, 3)
+	expect first is Ok(_)
+	let held <- Inventory(sku).held()
+	expect held == 3
+}
