@@ -61,3 +61,6 @@ chapter-13/test-run.txt	test	chapter-13/shop
 chapter-13/responses.txt	http	chapter-13/shop	--var AUTH_JWT_SECRET:not-a-secret --var PAYMENTS_WEBHOOK_SECRET:not-a-webhook-secret --var PAYMENTS_PROCESSOR:fake
 chapter-13/emitted/dispatch.ts	emit	chapter-13/shop	workers	workers/shop-orders/handlers.ts	if (__events.length > 0) {	}
 chapter-13/emitted/deliver.ts	emit	chapter-13/shop	workers	workers/shop-orders/events_fanout.ts	try {	} catch (e) {
+chapter-14/scheduled.txt	http	chapter-14/shop	--test-scheduled --var AUTH_JWT_SECRET:not-a-secret --var PAYMENTS_WEBHOOK_SECRET:not-a-webhook-secret --var PAYMENTS_PROCESSOR:fake
+chapter-14/emitted/triggers.toml	emit	chapter-14/shop	workers	workers/shop-inventory/wrangler.toml	[triggers]	max_batch_size
+chapter-14/test-run.txt	test	chapter-14/shop

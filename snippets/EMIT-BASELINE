@@ -9,3 +9,4 @@
 #
 # Columns (tab-separated): <path under snippets/>	<target>	<why>
 chapter-13/shop	workers	bynk-lang/bynk#2027: the ledger's subscriber serialiser names the unimported namespace shop_orders
+chapter-14/shop	workers	bynk-lang/bynk#2027: as chapter-13/shop, the ledger it inherits

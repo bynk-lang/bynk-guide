@@ -1,0 +1,49 @@
+Running tests...
+
+shop.inventory:
+  ✓ restocking adds to what is available
+  ✓ a reservation holds stock for its order, once
+  ✓ more than is available is refused, and takes nothing
+  ✓ releasing a hold puts its stock back, once
+  ✓ another context reserves through the service
+  ✓ a reservation, with its real collaborators
+  ✓ a committed hold is sold, and can't be released
+  ✓ a hold that is gone can't be committed
+  ✓ a hold is stale only once it is older than the cutoff
+  ✓ the sweeper releases a hold older than fifteen minutes
+  ✓ the sweeper leaves a fresh hold, and a sold one, alone
+  ✓ a delivery is stocked, and the sweeper can find it
+  ✓ a delivery that arrives twice is stocked once
+
+shop.ledger:
+  ✓ the books start empty
+  ✓ a placed order is counted
+  ✓ a cancelled order is taken off again
+
+shop.orders:
+  ✓ a line that fits its types is admitted
+  ✓ a zero quantity is refused
+  ✓ an order's total is quantity times price
+  ✓ an order over 100,000.00 is too large
+  ✓ a fresh order is pending, with no line
+  ✓ an order is opened once
+  ✓ a confirmed order is placed, and can be cancelled once
+  ✓ a rejected order cannot be cancelled
+  ✓ an order is shown to its owner, and to nobody else
+  ✓ an order is only cancelled after it was placed
+
+shop.payments:
+  ✓ a charge within the limit is approved
+  ✓ a charge over 1,000.00 is declined
+  ✓ the limit itself is approved
+  ✓ without the fake, a charge goes to the gateway
+  ✓ a card the processor declines is declined
+  ✓ a processor that cannot be reached is unavailable, not declined
+  ✓ an authorised payment is recorded against its order
+  ✓ a declined payment records nothing
+  ✓ a capture notice moves an authorised payment on
+  ✓ a notice delivered twice is applied once
+  ✓ a notice that does not follow from the status is refused
+  ✓ a notice for a payment the shop never recorded is refused
+
+38 passed, 0 failed.

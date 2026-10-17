@@ -1,0 +1,6 @@
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[queues.consumers]]
+queue = "stock-deliveries"
+max_batch_size = 10
