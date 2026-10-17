@@ -158,13 +158,17 @@ the issue, as `brief.md` asks.
     secrets go to every context (ADR 0195), so the key goes on with a scoped
     `--context shop.payments --secret` run; declared values come from the
     environment. `--env` and `bynk.deploy.lock`; the staging plan's unsuffixed
-    names (bynk-lang/bynk#2028). bynk-ci and bynk-deploy. `workers.dev`: no
+    names (bynk-lang/bynk#2028, fixed on main by #2034; the deploy itself
+    suffixes). bynk-ci and bynk-deploy. `workers.dev`: no
     durable workaround at 0.330.4. Debugging: `bynk dev --inspect`, `Logger`,
-    the emitted fault handler, `--upload-source-maps`, and the quiet `503`
+    the emitted fault handler (tail gets the message, no stack, so an
+    uploaded source map has nothing to map), and the quiet `503`
     when the key is missing. *Shop:* payments logs why it fails closed.
     *Replaces:* a deploy script, and `console.log` debugging.
-    *Deploys:* the shop without events. Nothing here was run against a live
-    account; when the pin moves, check the live deploy's output too.
+    *Deploys:* the shop without events. Checked once against a live
+    scratch account at 0.330.4 (2026-10-17): first-deploy secrets land
+    after the upload, a redeploy plan says `redeploy`, staging suffixes.
+    Repeat the live run when the pin moves.
 
 ## Part V: Beyond a request
 

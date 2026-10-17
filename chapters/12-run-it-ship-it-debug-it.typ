@@ -86,12 +86,18 @@ Run it for real, with the declared secrets' values in the environment:
 `bynk deploy` checks Node and Wrangler, compiles the project, prints the plan,
 checks that Wrangler is signed in, and asks before it changes anything (`--yes`
 skips the question, for scripts). Then, context by context, it sets the
-secrets and uploads the Worker, so no Worker is ever live without them. A
-missing value for a declared secret stops the deploy, naming the secret: a
-Worker without its actor's secret would refuse every request.
+secrets and uploads the Worker. On a Worker that already exists, the secrets
+go first. On a Worker's first deploy they go straight after the upload, so for
+a few seconds the new Worker is live without them, and refuses what its actors
+can't verify (bynk-lang/bynk#2055). Nothing is printed when a secret is set; `wrangler versions
+list` shows it, as a `Secret Change` version beside the `Upload`. A missing
+value for a declared secret stops the deploy, naming the secret: a Worker
+without its actor's secret would refuse every request.
 
 Secrets are set only if they are absent, because Cloudflare never gives a
-value back to compare with. Pass `--force` after you rotate one. A deploy that
+value back to compare with. Pass `--force` after you rotate one. A second run
+says `redeploy` for each Worker and skips each secret, saying it is already
+set, though its plan still lists the `secret set` line. A deploy that
 fails part-way leaves the contexts that landed deployed; fix the problem and run
 it again, and it carries on in the same order.
 
@@ -163,8 +169,11 @@ give payments its key in a run of its own:
   lang: "text",
 )
 
-Because secrets are set only if absent, a later whole-project deploy leaves
-the key where it is.
+The plan above is a dry run on a project that has never been deployed. Run
+after the first deploy, as it would be, the last line reads `redeploy
+shop-payments`: the plan checks `bynk.deploy.lock` for what is live. Because
+secrets are set only if absent, a later whole-project deploy leaves the key
+where it is.
 
 == Environments and the lock file <ix-guide-12-environments-and-the-lock-file>
 
@@ -184,12 +193,15 @@ binds to are live. The shop has no KV namespace now, but a project that does
 must run its first deploy from a machine that can commit the lock file. CI
 refuses to create a namespace whose id it can't record.
 
-Check that before you put staging and production on the same account. At
-0.330.4 the staging plan names the same Workers and binding targets as the
-default one, `shop-orders` binding to `shop-inventory`, with no suffix, though
-the guide's own example shows one. From a dry run you can't tell whether the
-plan or the deploy is the one that leaves it off (bynk-lang/bynk#2028). Until
-that is settled, give staging an account of its own.
+At 0.330.4 the staging plan doesn't show this. It names the same Workers and
+binding targets as the default one, `shop-orders` binding to
+`shop-inventory`. The deploy does what the guide says: run for real, it
+creates `shop-orders-staging`, bound to `shop-inventory-staging` and
+`shop-payments-staging`, and leaves `shop-orders` alone. The plan's fix is on
+Bynk's main branch (bynk-lang/bynk#2034). A project with a KV namespace should
+read bynk-lang/bynk#2037 before it shares an account between environments: at
+0.330.4 the bare `Kv`'s namespace keeps one title in every environment. The
+shop has none.
 
 == In CI <ix-guide-12-in-ci>
 
@@ -226,10 +238,12 @@ looks. Here is what that means once the shop is deployed.
 The generated `wrangler.toml` sets neither `routes` nor `workers_dev`, and
 when there are no routes Wrangler gives the Worker a `workers.dev` address.
 It does so on every deploy, so turning the address off in the dashboard lasts
-until the next one. Every Worker answers its `on call` services and event
+until the next one. Wrangler says so in a warning, and turns the Worker's
+preview URLs back on with it. Every Worker answers its `on call` services and event
 deliveries at that address, and trusts whichever caller the request claims.
 So anyone who finds `shop-inventory`'s address can call `reserve`, claiming to
-be orders.
+be orders. The contract hash each call carries doesn't stop it: a call
+without the hash gets a `409` that names the one it expected.
 
 At 0.330.4 there is no setting that keeps the address off, and it wouldn't be
 enough if there were: orders and payments serve public routes as well, and
@@ -263,26 +277,19 @@ Worker's `fetch`:
   lang: "typescript",
 )
 
-The log line names the context and the route, and the client gets a bare
-`500` with nothing of the error in it. To follow the error to its line, the
-stack trace has to be mapped, and Wrangler doesn't upload source maps unless
-asked. Pass the flag after `--`, or in the action's `extra-args`:
+The log line names the context, the route and the error's message, and the
+client gets a bare `500` with nothing of the error in it. In `wrangler tail`
+that is all there is. Bynk caught the error, so the tail reports the request's
+outcome as `ok`, with no exception and no stack trace. Wrangler will upload
+source maps if asked (`bynk deploy -- --upload-source-maps`, or the action's
+`extra-args`), and the map it builds does lead back to the `.bynk` files, with
+the source inside it. But at 0.330.4 the tail has no stack trace to apply it
+to (bynk-lang/bynk#2053). The message and the route are what you get; to find the line, reproduce
+the fault under `bynk dev --inspect`.
 
-#code-listing(
-  [Uploading source maps],
-  "bynk deploy -- --upload-source-maps",
-  lang: "sh",
-)
-
-Wrangler bundles each Worker and chains Bynk's maps into its own, so the map it
-uploads leads back to `orders.bynk`, with the source inside it. Cloudflare
-uses an uploaded map for the stack traces it reports.#footnote[
-  Cloudflare's Workers documentation, “Source maps and stack traces”.
-]
-
-And the emitted TypeScript is there to read, as chapter 1 showed. Every
-context's Worker is under `out/workers/`, with its handlers, its composition
-root and its `wrangler.toml`.
+And the emitted TypeScript is there to read, as chapter 1 showed. What `bynk
+deploy` uploads is under `.bynk/deploy/workers/`, one directory per context,
+with its handlers, its composition root and its `wrangler.toml`.
 
 == The quiet failure <ix-guide-12-the-quiet-failure>
 
@@ -346,8 +353,9 @@ Chapter 15 is about what that means once the contracts between them change.
 
 And the plans in this chapter are what `bynk deploy --dry-run` prints, checked
 against the release on every build of this book. What Cloudflare does with
-them comes from Bynk's and Cloudflare's documentation. Read the first real
-deploy's output, not just the plan.
+them was checked once, by hand, against 0.330.4 on a scratch account, and
+isn't re-checked on every build. Read the first real deploy's output, not
+just the plan.
 
 == Where this leaves the shop <ix-guide-12-where-this-leaves-the-shop>
 
