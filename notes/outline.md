@@ -203,9 +203,20 @@ the issue, as `brief.md` asks.
     0.330.4. *Replaces:* a hand-written `scheduled` handler and queue
     consumer. Closes chapter 8's gap.
 15. **Changing a deployed system**
-    The schema lock, migrations of agent state, contract skew. Not light: this
-    reader has migrated Durable Object storage by hand. Honest about what 1.0 is
-    still to settle.
+    What outlives a deploy: stored state, events, calls. Stored state:
+    rehydration validation (add/remove safe, tighten faults with
+    `RehydrationViolation`; breaking changes by convention). Events:
+    `OrderPlaced` gains `customer: String = ""`; the `bynk.schema.lock` diff
+    (schema 1 → 2; snippets' locks are now gated against what compiling
+    writes); refusal `bynk.event.non_additive_schema_change` (a
+    `build-fail` row); `bynkc check`/`test` don't consult the registry
+    (bynk-lang/bynk#2078). Calls: the shop has charged the unit price since
+    chapter 8; the fix passes the total and renames `authorise`'s parameter
+    to `amount`, a contract change. `bynk.deploy.contract_skew` for
+    `--context shop.orders` against a lock recording chapter 14 as live
+    (`chapter-15/skew`, plan gate); `--context shop.payments` isn't refused
+    (bynk-lang/bynk#2077). What 1.0 is still to settle. *Replaces:*
+    hand-written storage migrations and versioned RPC.
 
 ## Epilogue: Where to go next
 

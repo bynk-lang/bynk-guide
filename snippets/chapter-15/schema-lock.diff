@@ -1,0 +1,23 @@
+--- a/bynk.schema.lock
++++ b/bynk.schema.lock
+@@ -24,7 +24,7 @@
+ default = false
+ 
+ [events."shop.orders.OrderPlaced"]
+-schema = 1
++schema = 2
+ 
+ [[events."shop.orders.OrderPlaced".fields]]
+ name = "cents"
+@@ -32,6 +32,11 @@
+ default = false
+ 
+ [[events."shop.orders.OrderPlaced".fields]]
++name = "customer"
++type = "String"
++default = true
++
++[[events."shop.orders.OrderPlaced".fields]]
+ name = "orderId"
+ type = "OrderId"
+ default = false
