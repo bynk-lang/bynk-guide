@@ -1,0 +1,107 @@
+context shop.ledger
+
+consumes shop.orders
+consumes bynk { Events, Idempotency }
+
+---
+Staff: anyone with a token signed with the shop's secret. Only an admin
+reads the books.
+---
+type StaffId = String where NonEmpty
+
+actor Staff {
+	auth = Bearer(
+		secret = "AUTH_JWT_SECRET"
+	),
+	identity = StaffId
+}
+
+actor Admin = Staff where hasClaim("admin")
+
+---
+The books at a glance: orders standing, units sold, and what they come to.
+---
+type Totals = { orders: Int, units: Int, cents: Int }
+
+---
+The books. One instance, `Books("main")`, since each total is one number.
+The ledger learns of orders only from events, so it is never asked to
+agree with orders inside a request.
+---
+agent Books {
+	key id: String
+
+	store orders: Cell[Int]
+	store units: Cell[Int]
+	store cents: Cell[Int]
+
+	on call placed(qty: Int, amount: Int) -> Effect[()] {
+		let _ <- orders.update((v) => v + 1)
+		let _ <- units.update((v) => v + qty)
+		let _ <- cents.update((v) => v + amount)
+	}
+
+	on call cancelled(qty: Int, amount: Int) -> Effect[()] {
+		let _ <- orders.update((v) => v - 1)
+		let _ <- units.update((v) => v - qty)
+		let _ <- cents.update((v) => v - amount)
+	}
+
+	on call totals() -> Effect[Totals] {
+		Totals { orders: orders, units: units, cents: cents }
+	}
+}
+
+---
+A sale the ledger heard about some other way, announced as if orders had
+made it.
+---
+service backfill {
+	on call(e: OrderPlaced) -> Effect[()] by c: Caller given Events {
+		Events.emit[OrderPlaced](e)
+	}
+}
+
+---
+Delivery is at least once by design, so each subscriber asks
+`Idempotency` whether it has seen the event's id before it counts the
+order.
+---
+service OnPlaced from Events(OrderPlaced) {
+	on event(
+		e: OrderPlaced,
+		env: EventEnvelope
+	) -> Effect[()] given Idempotency {
+		let seen <- Idempotency.dedup[()](env.eventId)
+		match seen {
+			Some(_) => (),
+			None => {
+				let _ <- Books("main").placed(e.qty, e.qty * e.cents)
+				let _ <- Idempotency.remember[()](env.eventId, (), 7.days)
+			},
+		}
+	}
+}
+
+service OnCancelled from Events(OrderCancelled) {
+	on event(
+		e: OrderCancelled,
+		env: EventEnvelope
+	) -> Effect[()] given Idempotency {
+		let seen <- Idempotency.dedup[()](env.eventId)
+		match seen {
+			Some(_) => (),
+			None => {
+				let _ <- Books("main").cancelled(e.qty, e.qty * e.cents)
+				let _ <- Idempotency.remember[()](env.eventId, (), 7.days)
+			},
+		}
+	}
+}
+
+service api from http {
+	on GET("/totals") () -> Effect[HttpResult[Totals]] by a: Admin {
+		let t <- Books("main").totals()
+		Ok(t)
+	}
+}

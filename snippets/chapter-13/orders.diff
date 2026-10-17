@@ -1,0 +1,85 @@
+--- a/src/shop/orders.bynk
++++ b/src/shop/orders.bynk
+@@ -3,7 +3,8 @@
+ uses shop.values
+ consumes shop.inventory as Stock
+ consumes shop.payments as Pay
+-consumes bynk { Logger }
++consumes bynk { Events, Logger }
++exports transparent { OrderPlaced, OrderCancelled }
+ 
+ ---
+ Who is asking: the `sub` of a verified bearer token.
+@@ -27,6 +28,24 @@
+ actor Admin = Customer where hasClaim("admin")
+ 
+ ---
++Facts other contexts can react to. Orders emits them and neither knows nor
++cares who listens.
++---
++event OrderPlaced = {
++	orderId: OrderId,
++	sku: Sku,
++	qty: Quantity,
++	cents: Cents,
++}
++
++event OrderCancelled = {
++	orderId: OrderId,
++	sku: Sku,
++	qty: Quantity,
++	cents: Cents,
++}
++
++---
+ What the customer is buying: one sku, how many, and the agreed price.
+ ---
+ type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+@@ -174,7 +193,7 @@
+ 	on PUT("/orders/:id") (
+ 		id: OrderId,
+ 		body: OrderLine
+-	) -> Effect[HttpResult[OrderView]] by c: Customer given Logger {
++	) -> Effect[HttpResult[OrderView]] by c: Customer given Events, Logger {
+ 		match total(body) {
+ 			Err(_) => UnprocessableEntity(
+ 				"the order comes to more than 100,000.00"
+@@ -212,6 +228,14 @@
+ 									},
+ 									Ok(_) => {
+ 										let _ <- Order(id).confirm()
++										let _ <- Events.emit[OrderPlaced](
++											OrderPlaced {
++												orderId: id,
++												sku: body.sku,
++												qty: body.qty,
++												cents: body.cents,
++											}
++										)
+ 										~> Logger.info(
+ 											"order for \(t) cents"
+ 										)
+@@ -245,7 +269,7 @@
+ 
+ 	on POST("/orders/:id/cancel") (
+ 		id: OrderId
+-	) -> Effect[HttpResult[OrderView]] by c: Customer {
++	) -> Effect[HttpResult[OrderView]] by c: Customer given Events {
+ 		let o <- Order(id).view()
+ 		match shown(id, o, c.identity) {
+ 			None => NotFound,
+@@ -257,6 +281,14 @@
+ 					),
+ 					Ok(_) => {
+ 						let _ <- Stock.release(v.sku, id)
++						let _ <- Events.emit[OrderCancelled](
++							OrderCancelled {
++								orderId: id,
++								sku: v.sku,
++								qty: v.qty,
++								cents: v.cents,
++							}
++						)
+ 						Ok(OrderView {
+ 							id: id,
+ 							status: "cancelled",

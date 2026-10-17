@@ -169,13 +169,21 @@ the issue, as `brief.md` asks.
 ## Part V: Beyond a request
 
 13. **Events**
-    Emit and subscribe, at-least-once delivery, `Idempotency`.
-    The ledger's Worker won't pass `tsc` while events carry commons types
-    (bynk-lang/bynk#2027): `check-book-emit.sh` will need a `build-fail` row
-    or a baseline for chapter 13's project until it is fixed.
-    *Replaces:* hand-rolled queues and fan-out. *Shop:* the ledger. Says why the
-    full shop can't deploy yet (bynk-lang/bynk#1961; fixed on main
-    2026-10-16, unreleased at 0.330.4).
+    Opens Part V. Orders declares `OrderPlaced` and `OrderCancelled` and emits
+    them from its route handlers (emitting from the `Order` agent would tie the
+    event to its commit, but a unit test of such an agent fails:
+    bynk-lang/bynk#2050). The ledger: `Books` agent, a subscriber per event
+    deduping on `env.eventId` with `Idempotency`, `GET /totals` for an
+    `Admin`. Refusal: `bynk.event.emit_outside_owner`. Delivery at 0.330.4,
+    from the emitted code: inside the request, attempted once, a failure
+    logged and dropped; `Idempotency` is in memory. Subscribers can't be
+    addressed from a test (bynk-lang/bynk#2052), and the `system` suite goes
+    (bynk-lang/bynk#2027, fixed on main; the Workers build is in
+    `snippets/EMIT-BASELINE`). `bynk deploy` refuses the binding cycle
+    (bynk-lang/bynk#1961, fixed on main by #1998), quoted through the plan
+    gate. *Replaces:* hand-rolled queues and fan-out. *Shop:* the ledger.
+    When the pin moves: restore a `system` suite, try the deploy, and drop
+    the baseline line.
 14. **Time and queues**
     Cron, and queue consumers. *Shop:* each hold gains `at: Instant` from
     `Clock`, and `service sweeper from cron` releases holds older than 15
