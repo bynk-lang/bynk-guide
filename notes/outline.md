@@ -103,8 +103,9 @@ the issue, as `brief.md` asks.
    (bynk-lang/bynk#1954). Beside an existing Worker (bynk-lang/bynk#1973). A
    warning: at 0.330.4 a deployed context answers its `on call` services on
    its `workers.dev` address with any claimed caller; fixed upstream, not yet
-   released (bynk-lang/bynk#2004, #2012). Chapter 12 must turn off
-   `workers.dev` for internal contexts, or the pin must move past the fix.
+   released (bynk-lang/bynk#2004, #2012). Turning `workers.dev` off doesn't
+   last (each deploy re-enables it), so chapter 12 says to try the shop, not
+   run it for real, until the pin moves past the fix.
    *Replaces:* Service Binding glue and hand-typed RPC. *Shop:* orders,
    inventory, payments.
 9. **Capabilities and providers**
@@ -149,15 +150,21 @@ the issue, as `brief.md` asks.
     `bynk dev`. Habits: `is` (#1979), `by Caller` (#1978), local names (#2024).
     *Replaces:* vitest with Miniflare, spies, and hand-wired integration tests.
 12. **Run it, ship it, debug it**
-    `bynk dev`, `bynk deploy`, lock files, secrets, environments, the CI
-    actions. `bynk-secrets.json` can miss reads made in provider bodies and
-    adapter bindings, so `bynk deploy` won't warn that `PAYMENTS_API_KEY` is
-    unset (bynk-lang/bynk#1976); say what to check by hand. Then a deployed Worker
-    that misbehaves: `Logger`, source maps back
-    to `.bynk`, reading the emitted TypeScript, and what a `Result` error looks
-    like in the Workers dashboard.
+    `bynk deploy` and its dry-run plan (gated by `check-book-plans.sh`):
+    order from `consumes`, advisory Durable Objects, `declared`/`read`/
+    `supplied` secrets. At 0.330.4 the plan misses reads in provider bodies
+    and adapter bindings and still says complete (bynk-lang/bynk#1976, fixed
+    unreleased by #1997), so `PAYMENTS_API_KEY` is checked by hand. Supplied
+    secrets go to every context (ADR 0195), so the key goes on with a scoped
+    `--context shop.payments --secret` run; declared values come from the
+    environment. `--env` and `bynk.deploy.lock`; the staging plan's unsuffixed
+    names (bynk-lang/bynk#2028). bynk-ci and bynk-deploy. `workers.dev`: no
+    durable workaround at 0.330.4. Debugging: `bynk dev --inspect`, `Logger`,
+    the emitted fault handler, `--upload-source-maps`, and the quiet `503`
+    when the key is missing. *Shop:* payments logs why it fails closed.
     *Replaces:* a deploy script, and `console.log` debugging.
-    *Deploys:* the shop without events.
+    *Deploys:* the shop without events. Nothing here was run against a live
+    account; when the pin moves, check the live deploy's output too.
 
 ## Part V: Beyond a request
 
@@ -167,7 +174,8 @@ the issue, as `brief.md` asks.
     (bynk-lang/bynk#2027): `check-book-emit.sh` will need a `build-fail` row
     or a baseline for chapter 13's project until it is fixed.
     *Replaces:* hand-rolled queues and fan-out. *Shop:* the ledger. Says why the
-    full shop can't deploy yet (bynk-lang/bynk#1961).
+    full shop can't deploy yet (bynk-lang/bynk#1961; fixed on main
+    2026-10-16, unreleased at 0.330.4).
 14. **Time and queues**
     Cron, and queue consumers. *Shop:* each hold gains `at: Instant` from
     `Clock`, and `service sweeper from cron` releases holds older than 15

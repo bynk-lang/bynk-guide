@@ -1,0 +1,12 @@
+durable object Inventory (sqlite; advisory — Cloudflare reconciles it)
+secret set PAYMENTS_API_KEY (supplied)
+deploy shop-inventory
+durable object Payment (sqlite; advisory — Cloudflare reconciles it)
+secret set PAYMENTS_API_KEY (supplied)
+secret set PAYMENTS_WEBHOOK_SECRET (declared)
+deploy shop-payments
+durable object Order (sqlite; advisory — Cloudflare reconciles it)
+secret set AUTH_JWT_SECRET (declared)
+secret set PAYMENTS_API_KEY (supplied)
+deploy shop-orders
+order shop-inventory → shop-payments → shop-orders

@@ -1,0 +1,36 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Declared secrets: found from the program, so each goes only to the
+      # context whose actor declares it.
+      AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
+      PAYMENTS_WEBHOOK_SECRET: ${{ secrets.PAYMENTS_WEBHOOK_SECRET }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: bynk-lang/bynk-ci@v1
+        with:
+          version: 0.330.4
+          source: .
+      - uses: bynk-lang/bynk-deploy@v2
+        with:
+          version: 0.330.4
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # The processor's key, which only payments reads.
+      - uses: bynk-lang/bynk-deploy@v2
+        with:
+          version: 0.330.4
+          context: shop.payments
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          secrets: |
+            PAYMENTS_API_KEY=${{ secrets.PAYMENTS_API_KEY }}

@@ -42,3 +42,4 @@
 #part-page(4, [Confidence and delivery])
 
 #include "chapters/11-testing-at-three-tiers.typ"
+#include "chapters/12-run-it-ship-it-debug-it.typ"

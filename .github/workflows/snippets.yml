@@ -110,6 +110,14 @@ jobs:
         run: ./scripts/check-book-emitted.sh
         env:
           BYNKC: ${{ steps.bynk.outputs.bindir }}/bynkc
+      - name: Diff the manuscript's quoted deploy plans
+        # Runs `bynk deploy --dry-run` (no Cloudflare calls, no token) for each
+        # project a `plan` row in snippets/TRANSCRIPTS.tsv names, and diffs the
+        # plan against the chapter's copy.
+        if: ${{ !cancelled() && steps.bynk.conclusion == 'success' }}
+        run: ./scripts/check-book-plans.sh
+        env:
+          BYNK: ${{ steps.bynk.outputs.bindir }}/bynk
       - name: Report the drift
         if: ${{ failure() && inputs.version != '' }}
         env:

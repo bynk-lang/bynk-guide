@@ -326,15 +326,14 @@ on every path that should.
 
 Finally, a warning that matters as soon as you deploy. At 0.330.4 the internal
 channel is less private than it looks. A context's Worker answers its
-`on call` services on every route it has, and a deployed Worker keeps
-Cloudflare's default `workers.dev` address unless you turn it off. Anyone who
-finds that address can call the services, and name any caller they like. The
-fix is on Bynk's main branch, signing every call between contexts with a key
-per pair (bynk-lang/bynk#2004 and #2012), and isn't in a release yet. Until it
-is, turn off the `workers.dev` route for contexts with no public routes of
-their own, such as inventory. That doesn't protect a context that has public
-routes too, because every route serves the internal paths; chapter 12 comes
-back to this when it deploys.
+`on call` services on every route it has, and a deployed Worker gets
+Cloudflare's `workers.dev` address. Anyone who finds that address can call the
+services, and name any caller they like. The fix is on Bynk's main branch,
+signing every call between contexts with a key per pair (bynk-lang/bynk#2004
+and #2012), and isn't in a release yet. Turning the address off doesn't last,
+because each deploy turns it back on, and it wouldn't protect a context with
+public routes of its own, because every route serves the internal paths.
+Chapter 12 comes back to this when it deploys.
 
 == Where this leaves the shop <ix-guide-08-where-this-leaves-the-shop>
 
