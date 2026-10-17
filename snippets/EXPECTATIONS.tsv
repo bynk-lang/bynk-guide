@@ -31,3 +31,4 @@ chapter-11/cross-context-unit	fail	bynk.tier.cross_context_needs_system
 chapter-11/mixed-suite	fail	bynk.tier.mixed_system_suite
 chapter-13/foreign-emit	fail	bynk.event.emit_outside_owner
 chapter-14/instant-param	fail	bynk.cron.bad_params
+chapter-15/no-default	build-fail	bynk.event.non_additive_schema_change

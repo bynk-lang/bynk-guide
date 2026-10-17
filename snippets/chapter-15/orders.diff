@@ -1,0 +1,27 @@
+--- a/src/shop/orders.bynk
++++ b/src/shop/orders.bynk
+@@ -36,6 +36,7 @@
+ 	sku: Sku,
+ 	qty: Quantity,
+ 	cents: Cents,
++	customer: String = "",
+ }
+ 
+ event OrderCancelled = {
+@@ -212,7 +213,7 @@
+ 								Conflict("out of stock")
+ 							},
+ 							Ok(_) => {
+-								let paid <- Pay.authorise(id, body.cents)
++								let paid <- Pay.authorise(id, t)
+ 								match paid {
+ 									Err(why) => {
+ 										let _ <- Stock.release(body.sku, id)
+@@ -250,6 +251,7 @@
+ 														sku: body.sku,
+ 														qty: body.qty,
+ 														cents: body.cents,
++														customer: c.identity,
+ 													}
+ 												)
+ 												~> Logger.info(

@@ -21,6 +21,9 @@
 # project is copied to a temporary directory first and the snippets tree is
 # never written to.
 #
+# Each passing project's committed bynk.schema.lock must match the one its
+# compile writes.
+#
 # Builds listed in snippets/EMIT-BASELINE are known to fail. They are reported
 # without failing the gate, and a listed build that starts to pass fails it with
 # a note to delete its line, so the baseline can only shrink.
@@ -124,6 +127,18 @@ while IFS= read -r toml; do
       printf '  ok    %-42s %s\n' "$rel" "$target"
     fi
   done
+
+  # Compiling writes the project's schema registry. The committed
+  # bynk.schema.lock must already be what it writes, so a chapter that prints
+  # one (or whose next chapter's refusal depends on one) shows the real file.
+  if [ -f "$dir/bynk.schema.lock" ] && [ -f "$copy/bynk.schema.lock" ] &&
+    ! d="$(diff -u --label "$rel/bynk.schema.lock (committed)" \
+      --label "$rel/bynk.schema.lock (compiled)" \
+      "$dir/bynk.schema.lock" "$copy/bynk.schema.lock")"; then
+    printf '  FAIL  %-42s %s\n' "$rel" "bynk.schema.lock isn't what compiling writes"
+    printf '%s\n' "$d" | sed 's/^/        /'
+    fail=$((fail + 1))
+  fi
 done < <(find "$SNIPPETS" -name bynk.toml | sort)
 
 echo

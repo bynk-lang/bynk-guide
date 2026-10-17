@@ -1,0 +1,4 @@
+bynk: `shop-orders` was compiled against a contract its live dependencies no longer provide (bynk.deploy.contract_skew):
+  shop.payments.authorise — compiled against da0d725f3a004040, live is febd15c2757b72e1
+  Deploying this would ship a caller its callee rejects (409 ContractMismatch) on every call.
+  Deploy the whole project (`bynk deploy`) so both sides move together.

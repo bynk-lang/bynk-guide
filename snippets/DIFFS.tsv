@@ -11,3 +11,6 @@ chapter-08/orders.diff	chapter-07/shop	chapter-08/shop	src/shop/orders.bynk	1,3
 chapter-09/orders.diff	chapter-08/shop	chapter-09/shop	src/shop/orders.bynk	all
 chapter-12/payments.diff	chapter-11/shop	chapter-12/shop	src/shop/payments.bynk	all
 chapter-13/orders.diff	chapter-12/shop	chapter-13/shop	src/shop/orders.bynk	1,2,3,5,6,7
+chapter-15/schema-lock.diff	chapter-14/shop	chapter-15/shop	bynk.schema.lock	all
+chapter-15/orders.diff	chapter-14/shop	chapter-15/shop	src/shop/orders.bynk	all
+chapter-15/payments.diff	chapter-14/shop	chapter-15/shop	src/shop/payments.bynk	all

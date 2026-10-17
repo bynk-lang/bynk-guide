@@ -2,13 +2,19 @@ build/
 output/pdf/
 
 # Written into snippet projects by bynkc: `test` emits out/ and out-js/, and
-# `compile` writes a bynk.schema.lock (empty here, as no snippet declares an
-# event). None of it is printed in the book.
+# `compile` writes a bynk.schema.lock. A project with no events gets an empty
+# lock, which is ignored.
 snippets/**/out/
 snippets/**/out-js/
 snippets/**/bynk.schema.lock
-# A chapter about the event schema registry may keep a project's lock as
-# evidence; un-ignore it here when that chapter exists.
+# Projects that declare events keep their lock: chapter 15 prints its diff,
+# its refusal depends on the earlier one, and scripts/check-book-emit.sh
+# checks each committed lock against what compiling writes.
+!snippets/chapter-13/shop/bynk.schema.lock
+!snippets/chapter-14/shop/bynk.schema.lock
+!snippets/chapter-15/shop/bynk.schema.lock
+!snippets/chapter-15/no-default/bynk.schema.lock
+!snippets/chapter-15/skew/bynk.schema.lock
 
 # Editor / OS
 .DS_Store
