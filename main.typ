@@ -52,3 +52,9 @@
 
 #set heading(numbering: none)
 #include "chapters/epilogue.typ"
+
+#recto-break()
+#include "backmatter/issues.typ"
+
+#recto-break()
+#include "backmatter/glossary.typ"

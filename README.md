@@ -12,11 +12,13 @@ It sits between two other works, and is neither:
 - [*Architecture that compiles*](https://github.com/bynk-lang/architecture-that-compiles)
   argues for the language's design; this assumes the reader is willing to try it.
 
-The title is provisional. **The book is a working draft**: chapters 1 and 2
-are written, and the build, the listing gates and the canary hold them. Read
-[`notes/brief.md`](notes/brief.md) for the reader, scope and principles,
-[`notes/outline.md`](notes/outline.md) for the chapters, and
-[`notes/source-map.md`](notes/source-map.md) for where each chapter's code lives.
+The title is provisional. **The book is a complete review draft**: a
+preface, fifteen chapters in five parts, an epilogue, and two appendices (the
+Bynk issues the chapters cite, and a glossary). Reviewers should start with
+[`REVIEWING.md`](REVIEWING.md). Read [`notes/brief.md`](notes/brief.md) for the
+reader, scope and principles, [`notes/outline.md`](notes/outline.md) for the
+chapters, and [`notes/source-map.md`](notes/source-map.md) for where each
+chapter's code lives.
 
 ## Source structure
 
@@ -46,7 +48,7 @@ newest. A `v*` tag publishes it as a GitHub release.
 ## Keeping the listings true
 
 Every listing is a project under `snippets/` held by three gates, and what
-the chapters quote from running or compiling it by three more:
+the chapters quote from running, compiling or deploying it by four more:
 
 ```sh
 ./scripts/check-book-snippets.sh   # bynkc check: clean, or the exact refusal quoted
@@ -55,6 +57,8 @@ the chapters quote from running or compiling it by three more:
 ./scripts/check-book-tests.sh      # bynkc test: every case passes, quoted runs match
 ./scripts/check-book-responses.sh  # bynk dev: quoted HTTP responses match
 ./scripts/check-book-emitted.sh    # bynkc compile: quoted generated files match
+./scripts/check-book-plans.sh      # bynk deploy --dry-run: quoted plans and refusals match
+./scripts/check-book-issues.sh     # the issues appendix lists every issue a chapter cites
 ```
 
 They use whichever `bynkc` (and `bynk`) is on `PATH`; CI installs the pinned release with
@@ -62,7 +66,8 @@ They use whichever `bynkc` (and `bynk`) is on `PATH`; CI installs the pinned rel
 are in `snippets/EXPECTATIONS.tsv`, and each quoted transcript is listed with
 its project in `snippets/TRANSCRIPTS.tsv`; known format and build failures are
 ratchets in `snippets/FORMAT-BASELINE` and `snippets/EMIT-BASELINE` that can
-only shrink.
+only shrink. The emit gate also checks that each committed `bynk.schema.lock`
+is what compiling writes.
 Chapters that print a chapter-to-chapter diff generate it with
 `./scripts/make-book-diffs.sh`.
 
