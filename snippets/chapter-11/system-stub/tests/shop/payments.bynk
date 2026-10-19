@@ -1,0 +1,12 @@
+suite shop.payments as system {
+	uses shop.values
+
+	case "the fake processor, switched on by a stub" {
+		stub Secrets.get("PAYMENTS_PROCESSOR") returns Some("fake")
+		let r <- shop.payments.authorise(
+			orderIdFrom("o1"),
+			2500
+		) by Caller("shop.orders")
+		expect r is Ok("fake_o1")
+	}
+}

@@ -1,1 +1,0 @@
-bynk: the generated Service Bindings form a cycle (shop-ledger → shop-orders → shop-ledger) — it cannot be uploaded in dependency order

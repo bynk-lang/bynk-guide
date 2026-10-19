@@ -13,10 +13,10 @@
 # (kind `test`), and the output from `Running tests...` on must match it
 # exactly. Anything before that line is the compile step's and is not quoted.
 #
-# A project whose adapter binding is TypeScript can test the binding as
+# A project whose adapter binding is TypeScript can also test the binding as
 # TypeScript, in tests/bindings/*.test.cjs, against the out-js/ build that
-# `bynkc test` leaves behind; a Bynk test can't reach a binding at 0.330.4
-# (bynk-lang/bynk#1975). Those run with `node --test` after the suite passes.
+# `bynkc test` leaves behind. Those run with `node --test` after the suite
+# passes.
 #
 # Each project runs on a copy with no out/ or out-js/, so a stale runner never
 # answers for the current sources and the checkout is left untouched.
