@@ -1,5 +1,6 @@
 durable object Payment (sqlite; advisory — Cloudflare reconciles it)
-secrets incomplete shop-payments (reads at least one name the compiler cannot see)
+secrets incomplete shop-payments (reads at least one name the compiler
+    cannot see)
 secret set PAYMENTS_API_KEY (supplied)
 secret set PAYMENTS_PROCESSOR (read)
 secret set PAYMENTS_WEBHOOK_SECRET (declared)

@@ -232,12 +232,11 @@ directly. No token is signed or checked: the test is about what the handler
 does with a caller, and the verification is the compiler's, tested once,
 upstream.
 
-Two routes in this chapter aren't tested that way, and not by choice. At
-0.330.4 a test can't call a route guarded by a refinement actor like `Admin`
-(bynk-lang/bynk#2019), or one whose `by` is a sum of actors
-(bynk-lang/bynk#2020): depending on how you write the `by`, the checker
-refuses the call or the generated test doesn't compile. The transcript above, which CI replays against `bynk dev` with real
-tokens, covers both.
+The same goes for the other two routes. A route guarded by a refinement actor
+takes the base actor's identity, `by Admin("root")`, and a route whose `by`
+is a sum takes any member, `by Visitor` or `by Customer("alice")`, and runs
+that member's arm. This suite leaves them to the transcript above, which CI
+replays against `bynk dev` with real tokens.
 
 #code-listing(
   [The suite, run],

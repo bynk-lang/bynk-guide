@@ -126,7 +126,7 @@ orders Worker that hasn't been redeployed yet, by filling `customer` with
 `""`.
 
 #lead-in[
-Leave out the default and the build refuses:
+Leave out the default and the check refuses:
 ]
 
 #compiler-message[
@@ -135,15 +135,11 @@ schema registry cannot evolve additively — field(s) added without a default:
 customer
 ]
 
-The registry is consulted when the project is built for running: `bynkc
-compile`, `bynk dev` and `bynk deploy`, dry run included, all refuse it. At
-0.330.4 `bynkc check` and `bynkc test` don't, so a CI that only runs
-`bynk-ci` stays green on a breaking event change (bynk-lang/bynk#2078). Run
-`bynk-deploy` with `dry-run: "true"` on pull requests too, as chapter 12
-suggested, and it will catch it. For this shop at 0.330.4 the dry run fails
-anyway, on chapter 13's binding cycle, so it can only be run by hand until a
-release has that fix. It does report a breaking event change before the
-cycle. The same goes for removing a field, retyping one, or taking a
+`bynkc check`, `bynkc test`, the editor and every build compare each event
+with the committed lock, read-only, so a breaking event change fails CI and
+shows in the editor before anyone builds it. Only a build writes the lock,
+which is why an additive change passes the check and the next compile records
+it. The same refusal meets removing a field, retyping one, or taking a
 default away. A change like that is a new event. Give it a new name, emit
 both while subscribers move over, and stop emitting the old one when none is
 left. A subscriber can also say which versions it handles with `via
@@ -186,8 +182,8 @@ which a caller can't observe.
 
 #lead-in[
 `bynk deploy` checks the same thing before anything is pushed. Its lock file
-records the contract each Worker provided when it was deployed. With a lock
-that records the chapter 14 shop as live, pushing orders alone is refused:
+records the contracts each Worker had when it was deployed. With a lock that
+records the chapter 14 shop as live, pushing orders alone is refused:
 ]
 
 #compiler-message(read("../snippets/chapter-15/skew-orders.txt"))
@@ -198,23 +194,17 @@ contract change is a coordinated deploy. Bynk doesn't run two versions of a
 contract side by side.
 
 #lead-in[
-The same check doesn't run in the other direction. Pushing payments alone,
-with the renamed parameter, is planned without complaint:
+The same check runs in the other direction. Pushing payments alone, with the
+renamed parameter, would leave the live orders Worker stamping the old hash on
+every call, and that is refused too:
 ]
 
-#code-listing(
-  [`bynk deploy --dry-run --context shop.payments`],
-  read("../snippets/chapter-15/skew-payments.txt"),
-  lang: "text",
-)
+#compiler-message(read("../snippets/chapter-15/skew-payments.txt"))
 
-Deployed, that leaves the live orders Worker stamping the old hash on every
-call, and every order is a `409` inside the shop and a `500` to the customer.
-The gate compares what a pushed context _expects_ with what is live. It
-doesn't compare what a pushed context now _provides_ with what live callers
-expect, because the lock doesn't record what they expect
-(bynk-lang/bynk#2077). Until it does, push a context with `--context` only
-when its contracts haven't changed.
+The lock records both halves of each contract: what every live Worker
+provides, and what it was compiled to expect of the contexts it calls. So a
+pushed context is checked against its callees and against its live callers,
+and a `409` in production needs a push that went around `bynk deploy`.
 
 == What 1.0 is still to settle <ix-guide-15-what-1-0-is-still-to-settle>
 
@@ -235,10 +225,10 @@ change much better than it _manages_ it.
   release-and-reject compensation safe across a crash.#footnote[
     The Bynk Book, “Versioning & roadmap”.
   ]
-- *This book's own pin.* Several fixes it relies on are on Bynk's main branch
-  and not in 0.330.4: per-pair signing of calls between contexts, the event
-  binding cycle, the Workers build of the ledger, the secrets the plan can't
-  see. The book will move to the release that has them.
+- *Delivery you can rely on.* Events are delivered once, inside the
+  emitting request, with no retry, and `Idempotency` remembers only as long
+  as an isolate lives (chapter 13). A durable provider and retries are
+  named as future work.
 
 == What it costs <ix-guide-15-what-it-costs>
 
@@ -246,8 +236,7 @@ The schema lock and the contract hash are checks you would otherwise not have
 at all. A renamed parameter in a TypeScript Service Binding is found when a
 request fails, and an event with a missing field is found by the subscriber
 that throws on it. Here both are found before anything is deployed, as long as
-the deploy goes through `bynk deploy` and the change is in the direction the
-gate looks.
+the deploy goes through `bynk deploy`.
 
 But the checks only say no. When the answer is "deploy everything together"
 there is no partial step, and when the answer is a `RehydrationViolation`,

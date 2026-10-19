@@ -118,11 +118,10 @@ is a workaround, and `shop.values` gains a function for it:
   lang: "bynk",
 )
 
-A `Map` may be keyed by an opaque type, and `bynkc check` accepts one. At
-0.330.4, though, the TypeScript it generates for reading such a map's keys
-doesn't compile (bynk-lang/bynk#1982). Keying by text, and keeping the
-`OrderId` inside the `Hold`, avoids it. When the bug is fixed, the key can
-become an `OrderId`, and `orderRef` can go.
+A `Map` may be keyed by an opaque type, and its `.keys` and `.entries` then
+yield that type. The shop keys `holds` by text and keeps the `OrderId` inside
+the `Hold`, which is what an earlier release needed; keyed by `OrderId`, the
+map would do without `orderRef`.
 
 == Reading across the map: `Query` <ix-guide-05-query>
 
@@ -286,8 +285,8 @@ The storage kinds beyond `Cell` are the least settled part of this book. They
 work, and the shop depends on them, but they may move between releases more
 than the rest; the canary will say when a chapter here stops being true.
 
-The map is keyed by text until bynk-lang/bynk#1982 is fixed, at the cost of
-one helper and a little type safety at the key.
+The map is keyed by text, at the cost of one helper and a little type safety
+at the key.
 
 A query reads one agent's data. Nothing reads across every product's stock at
 once: each `Inventory` is a separate Durable Object, and Durable Objects

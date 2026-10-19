@@ -27,6 +27,6 @@ for n in $extra; do
   fail=1
 done
 if [ "$fail" -eq 0 ]; then
-  echo "All $(printf '%s\n' "$cited" | grep -c .) cited issues are listed in the appendix."
+  echo "Every cited issue ($(printf '%s\n' "$cited" | grep -c .)) is listed in the appendix."
 fi
 exit "$fail"

@@ -40,7 +40,7 @@ fn orderIdFrom(text: Label) -> OrderId { OrderId.unsafe(text) }
 
 ---
 The order id as plain text. Only this commons can read an `OrderId`'s
-string, and a map keyed by an opaque type doesn't build yet
-(bynk-lang/bynk#1982), so stores key their maps by this instead.
+string; the shop's stores key their maps by it, and keep the `OrderId`
+itself in the value.
 ---
 fn orderRef(id: OrderId) -> String { id.raw }

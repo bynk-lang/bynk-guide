@@ -22,7 +22,8 @@
 # they share. scripts/check-book-emitted.sh compiles the project and diffs.
 # plan: what `bynk deploy --dry-run` prints for the project, with any extra
 # arguments in a fourth column (`--env staging`). A refusal is quoted the same
-# way. No Cloudflare calls are made.
+# way. A long line may wrap onto continuation lines indented by four spaces,
+# joined back with one space. No Cloudflare calls are made.
 # scripts/check-book-plans.sh runs it on a copy and diffs.
 chapter-02/test-run.txt	test	chapter-02/shop
 chapter-02/responses.txt	http	chapter-02/shop
@@ -53,14 +54,12 @@ chapter-10/responses.txt	http	chapter-10/shop	--var AUTH_JWT_SECRET:not-a-secret
 chapter-11/test-run.txt	test	chapter-11/shop
 chapter-12/plan.txt	plan	chapter-12/shop
 chapter-12/unavailable.txt	http	chapter-12/shop	--var AUTH_JWT_SECRET:not-a-secret --var PAYMENTS_WEBHOOK_SECRET:not-a-webhook-secret
-chapter-12/emitted/fault.ts	emit	chapter-12/shop	workers	workers/shop-orders/index.ts	} catch (e) {	status: 500
 chapter-12/plan-spread.txt	plan	chapter-12/shop	--secret PAYMENTS_API_KEY
 chapter-12/plan-payments.txt	plan	chapter-12/shop	--context shop.payments --secret PAYMENTS_API_KEY
 chapter-13/plan.txt	plan	chapter-13/shop
 chapter-13/test-run.txt	test	chapter-13/shop
 chapter-13/responses.txt	http	chapter-13/shop	--var AUTH_JWT_SECRET:not-a-secret --var PAYMENTS_WEBHOOK_SECRET:not-a-webhook-secret --var PAYMENTS_PROCESSOR:fake
 chapter-13/emitted/dispatch.ts	emit	chapter-13/shop	workers	workers/shop-orders/handlers.ts	if (__events.length > 0) {	}
-chapter-13/emitted/deliver.ts	emit	chapter-13/shop	workers	workers/shop-orders/events_fanout.ts	try {	} catch (e) {
 chapter-14/scheduled.txt	http	chapter-14/shop	--test-scheduled --var AUTH_JWT_SECRET:not-a-secret --var PAYMENTS_WEBHOOK_SECRET:not-a-webhook-secret --var PAYMENTS_PROCESSOR:fake
 chapter-14/emitted/triggers.toml	emit	chapter-14/shop	workers	workers/shop-inventory/wrangler.toml	[triggers]	max_batch_size
 chapter-14/test-run.txt	test	chapter-14/shop

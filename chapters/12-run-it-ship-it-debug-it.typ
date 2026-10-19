@@ -9,9 +9,10 @@ doesn't. Then it looks at what you have to go on when a deployed Worker
 misbehaves.
 
 Most of what deploying involves, Bynk can work out from the program: which
-Workers there are, which one binds to which, which secrets an actor checks.
-Some of it, at 0.330.4, it can't, and the chapter is careful to say which is
-which. The shop's likeliest production failure falls into that gap.
+Workers there are, which one binds to which, which secrets an actor checks,
+which keys sign the calls between them. Some of it, it can't, and the chapter
+is careful to say which is which. The shop's likeliest production failure
+falls into that gap.
 
 == The script you would write <ix-guide-12-the-script-you-would-write>
 
@@ -67,11 +68,16 @@ deploy to:
   namespaces are missing. There is no migration tag to keep in step, as
   chapter 4 said. Chapter 15 comes back to removing or renaming an agent,
   which Bynk never does for you.
-- *`secret set`* lines, marked with how Bynk knows the name. Both of these are
+- *`secret set`* lines, marked with how Bynk knows the name. Two are
   `declared`: the `Customer` actor in orders, which `Admin` refines, verifies
   tokens with `AUTH_JWT_SECRET`, and the `ProcessorHook` actor in payments
-  verifies signatures with `PAYMENTS_WEBHOOK_SECRET`. Each goes only to the context
-  whose actor declares it.
+  verifies signatures with `PAYMENTS_WEBHOOK_SECRET`. Each goes only to the
+  context whose actor declares it. The `managed` ones are the keys chapter 8
+  described, one for each pair of contexts that call each other: orders holds
+  `BYNK_CALL_TO_SHOP__INVENTORY`, and inventory holds the same key as
+  `BYNK_CALL_FROM_SHOP__ORDERS`. `bynk deploy` mints them and sets both ends,
+  and you never see their values. The `read` line and the `secrets incomplete`
+  line are the next section's.
 
 #lead-in[
 Run it for real, with the declared secrets' values in the environment:
@@ -86,13 +92,12 @@ Run it for real, with the declared secrets' values in the environment:
 `bynk deploy` checks Node and Wrangler, compiles the project, prints the plan,
 checks that Wrangler is signed in, and asks before it changes anything (`--yes`
 skips the question, for scripts). Then, context by context, it sets the
-secrets and uploads the Worker. On a Worker that already exists, the secrets
-go first. On a Worker's first deploy they go straight after the upload, so for
-a few seconds the new Worker is live without them, and refuses what its actors
-can't verify (bynk-lang/bynk#2055). Nothing is printed when a secret is set; `wrangler versions
-list` shows it, as a `Secret Change` version beside the `Upload`. A missing
-value for a declared secret stops the deploy, naming the secret: a Worker
-without its actor's secret would refuse every request.
+secrets and uploads the Worker. A new Worker's secrets go up with its code, so
+no Worker is ever live without them; on a Worker that already exists they are
+set first. Each one set prints a `bynk: set secret` line naming it and the
+Worker, never its value. A missing value for a declared secret stops the
+deploy, naming the secret: a Worker without its actor's secret would refuse
+every request.
 
 Secrets are set only if they are absent, because Cloudflare never gives a
 value back to compare with. Pass `--force` after you rotate one. A second run
@@ -118,18 +123,18 @@ complete is the thing it is built not to print.
 
 Payments reads three settings: `PAYMENTS_PROCESSOR` in the provider from
 chapter 9, and `PAYMENTS_API_KEY` and `PAYMENTS_API_URL` in the gateway's
-TypeScript binding from chapter 10. The plan above shows none of them. At
-0.330.4 the compiler collects `Secrets.get` calls in handlers only, not in a
-provider's body, and it can't see into a binding at all, yet it still calls
-payments' list complete (`--format json` gives `"secrets_complete": true`).
-The fix is on Bynk's main branch (bynk-lang/bynk#1997), not yet released. With
-it, the plan reads `PAYMENTS_PROCESSOR` and marks payments incomplete.
+TypeScript binding from chapter 10. The plan finds the first, a literal name
+in a provider's body, and marks it `read`. The other two it can't see: a
+binding is TypeScript, and the compiler doesn't look inside it. So it says
+so, with `secrets incomplete shop-payments`, rather than print a list that
+looks complete and isn't.
 
-So for now, check by hand. The shop runs in production with
-`PAYMENTS_PROCESSOR` unset, which selects the real processor, and needs
-`PAYMENTS_API_KEY`, which nothing will remind you to set. Forget it, and the
-deploy succeeds without a warning, and every order fails. The last part of
-this chapter is about finding that out.
+That line is the plan doing its job, and it hands the rest to you. The shop
+runs in production with `PAYMENTS_PROCESSOR` unset, which selects the real
+processor, so the `read` line is one to leave without a value (the deploy
+warns, and goes on). And it needs `PAYMENTS_API_KEY`, which the plan can only
+tell you it can't see. Forget it, and the deploy succeeds, and every order
+fails. The last part of this chapter is about finding that out.
 
 == Supplied secrets go everywhere <ix-guide-12-supplied-secrets-go-everywhere>
 
@@ -193,15 +198,12 @@ binds to are live. The shop has no KV namespace now, but a project that does
 must run its first deploy from a machine that can commit the lock file. CI
 refuses to create a namespace whose id it can't record.
 
-At 0.330.4 the staging plan doesn't show this. It names the same Workers and
-binding targets as the default one, `shop-orders` binding to
-`shop-inventory`. The deploy does what the guide says: run for real, it
-creates `shop-orders-staging`, bound to `shop-inventory-staging` and
-`shop-payments-staging`, and leaves `shop-orders` alone. The plan's fix is on
-Bynk's main branch (bynk-lang/bynk#2034). A project with a KV namespace should
-read bynk-lang/bynk#2037 before it shares an account between environments: at
-0.330.4 the bare `Kv`'s namespace keeps one title in every environment. The
-shop has none.
+The staging plan names what it will create: `deploy shop-orders-staging`,
+bound to `shop-inventory-staging` and `shop-payments-staging`. The two
+environments are separate Workers, with their own secrets and their own keys
+between them, so staging and production can share an account. A KV namespace
+gets an environment's suffix too, and `bynk deploy` refuses a title another
+environment already holds.
 
 == In CI <ix-guide-12-in-ci>
 
@@ -227,30 +229,25 @@ and sets a `lock-changed` output, and the change is yours to commit. With
 `dry-run: "true"` it prints the plan and needs no token, which makes it a
 useful check on a pull request.
 
-The shop's own `deploy.yml` is manual-only for now, for a reason that belongs
-to chapter 13.
-
-== `workers.dev`, at 0.330.4 <ix-guide-12-workers-dev>
-
-Chapter 8 warned that the channel between contexts is less private than it
-looks. Here is what that means once the shop is deployed.
+== `workers.dev`, and the internal paths <ix-guide-12-workers-dev>
 
 The generated `wrangler.toml` sets neither `routes` nor `workers_dev`, and
 when there are no routes Wrangler gives the Worker a `workers.dev` address.
 It does so on every deploy, so turning the address off in the dashboard lasts
-until the next one. Wrangler says so in a warning, and turns the Worker's
-preview URLs back on with it. Every Worker answers its `on call` services and event
-deliveries at that address, and trusts whichever caller the request claims.
-So anyone who finds `shop-inventory`'s address can call `reserve`, claiming to
-be orders. The contract hash each call carries doesn't stop it: a call
-without the hash gets a `409` that names the one it expected.
+until the next one; Wrangler says so in a warning, and turns the Worker's
+preview URLs back on with it. Every Worker answers its `on call` services and
+event deliveries at that address, as on every other route it has.
 
-At 0.330.4 there is no setting that keeps the address off, and it wouldn't be
-enough if there were: orders and payments serve public routes as well, and
-every route serves the internal paths. The fix is on Bynk's main branch. A
-shared secret on every internal call comes first (bynk-lang/bynk#2004), then a
-signature per pair of contexts (bynk-lang/bynk#2012). Neither is released yet.
-Until they are, deploy the shop to try it, not to take real money.
+That is safe because of the keys in the plan. An internal call that isn't
+signed with the key for the caller it names is refused with a bare `401`,
+before the Worker reads anything else, so a request from the internet that
+finds `shop-inventory`'s address can't reserve stock, and can't learn
+anything about the service it tried. The public routes, the order API and
+the webhook, are public on purpose, and their actors guard them.
+
+A project deployed by a Bynk older than these keys needs one whole-project
+deploy to set them all, not `--context`: until every Worker holds its keys,
+calls between old and new Workers fail.
 
 == When a deployed Worker misbehaves <ix-guide-12-when-a-worker-misbehaves>
 
@@ -266,26 +263,27 @@ On Cloudflare, what you have is what the Worker writes. `Logger.info` is
 `console.log` and `Logger.error` is `console.error`, and both reach
 `wrangler tail` and Cloudflare's logs. Bynk adds one line of its own.
 
-#lead-in[
 A handler that throws, rather than returning, is caught at the top of the
-Worker's `fetch`:
-]
+Worker's `fetch`. The emitted code logs `shop.orders <route> faulted` with the
+error's stack, and answers the client with a bare `500` that carries nothing
+of the error. Bynk caught the error, so `wrangler tail` reports the request's
+outcome as `ok`, but the log line has the frames.
+
+Those frames are in the bundled JavaScript unless Wrangler uploads a source
+map, which it does only if asked:
 
 #code-listing(
-  [What a fault becomes, in the emitted `index.ts`],
-  read("../snippets/chapter-12/emitted/fault.ts"),
-  lang: "typescript",
+  [Uploading source maps],
+  "bynk deploy -- --upload-source-maps",
+  lang: "sh",
 )
 
-The log line names the context, the route and the error's message, and the
-client gets a bare `500` with nothing of the error in it. In `wrangler tail`
-that is all there is. Bynk caught the error, so the tail reports the request's
-outcome as `ok`, with no exception and no stack trace. Wrangler will upload
-source maps if asked (`bynk deploy -- --upload-source-maps`, or the action's
-`extra-args`), and the map it builds does lead back to the `.bynk` files, with
-the source inside it. But at 0.330.4 the tail has no stack trace to apply it
-to (bynk-lang/bynk#2053). The message and the route are what you get; to find the line, reproduce
-the fault under `bynk dev --inspect`.
+Or put the flag in the action's `extra-args`. Wrangler bundles each Worker and
+chains Bynk's maps into its own, so the map it uploads leads back to the
+`.bynk` files, with the source inside it, and Cloudflare uses it to map the
+stack in its logs.#footnote[
+  Cloudflare's Workers documentation, “Source maps and stack traces”.
+]
 
 And the emitted TypeScript is there to read, as chapter 1 showed. What `bynk
 deploy` uploads is under `.bynk/deploy/workers/`, one directory per context,
@@ -308,8 +306,8 @@ key, and payments fails closed, as chapter 9 designed it to:
   lang: "text",
 )
 
-Every order is a `503`. Nothing has faulted, so nothing is logged, and nothing
-in the plan said the key was needed. Failing closed is right, but failing
+Every order is a `503`. Nothing has faulted, so nothing is logged, and the
+plan only said it couldn't see everything. Failing closed is right, but failing
 closed in silence leaves you with a status code and a guess.
 
 #lead-in[
@@ -331,17 +329,16 @@ line can't quietly disappear. From there, `wrangler secret list --name
 shop-payments` shows which secrets the Worker has, and the scoped deploy
 above sets the missing one.
 
-The rule this gives is worth keeping after the fix for the plan is released:
-wherever a program fails closed, log the reason. The status code is for the
-client; the log is for you.
+The rule this gives is worth keeping: wherever a program fails closed, log the
+reason. The status code is for the client; the log is for you.
 
 == What it costs <ix-guide-12-what-it-costs>
 
-A deploy plan is only as good as what the compiler can see. At 0.330.4 it
-misses the reads in a provider and a binding, and it will never see a name
-that is computed, though it will say so. Keep a short list of the settings a
-context needs that the plan doesn't show, and check it against `wrangler
-secret list` after a first deploy.
+A deploy plan is only as good as what the compiler can see. It can't see
+inside an adapter's binding, or a name the program computes, though it says
+when it can't. Keep a short list of the settings a context needs that the
+plan doesn't show, and check it against `wrangler secret list` after a first
+deploy.
 
 Supplied secrets go to every context in the run, and the way around it is a
 second, scoped deploy. That is one more step than the hand-written script,
@@ -353,17 +350,17 @@ Chapter 15 is about what that means once the contracts between them change.
 
 And the plans in this chapter are what `bynk deploy --dry-run` prints, checked
 against the release on every build of this book. What Cloudflare does with
-them was checked once, by hand, against 0.330.4 on a scratch account, and
-isn't re-checked on every build. Read the first real deploy's output, not
-just the plan.
+them was checked by hand, once, on a scratch account, with an earlier
+release; what has changed since (a new Worker's secrets, the staging plan, the
+signed internal calls, the logged stack) is described from Bynk's changelog.
+Read the first real deploy's output, not just the plan.
 
 == Where this leaves the shop <ix-guide-12-where-this-leaves-the-shop>
 
 The shop deploys with one command, in the order its bindings need, with each
 declared secret on the Worker that checks it and the processor's key on
-payments alone. It logs the one failure that would otherwise be silent. It is
-not yet safe to run for real, because of `workers.dev`, and that waits on a
-release.
+payments alone, and with a key for every pair of contexts that call each
+other. It logs the one failure that would otherwise be silent.
 
 The next chapter adds a ledger that records every order, fed by events
-rather than calls, and finds that the deploy has an opinion about that too.
+rather than calls.

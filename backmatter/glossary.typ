@@ -32,7 +32,13 @@ Bynk Book's reference has the exact rules.
 
 #term[`Caller`][8][
   The actor of an `on call` service: the name of the context that called it,
-  stamped by the compiler at the call site.
+  stamped by the compiler at the call site and signed with the key that pair
+  of contexts shares.
+]
+
+#term[`Foreign` actor][8][
+  A caller that isn't a Bynk context, such as an existing TypeScript Worker,
+  admitted by name and signing its calls with a key `bynk deploy` mints.
 ]
 
 #term[capability][9][

@@ -265,11 +265,8 @@ The first two cases test the boundary directly with `Json.decode`. The
 third calls the route the way the Worker would: a test addresses an HTTP
 route by its pattern, followed by its parameters, so
 `api.PUT("/orders/:id", …)` runs the handler with that id and body.
-`expect … is Ok(_)` asks whether a result has that shape.#footnote[
-  You might expect to compare whole results, as in `expect r == Ok(v)`. At
-  Bynk 0.330.4 that comparison is checked against the wrong type inside a
-  test case (bynk-lang/bynk#1979), so this book writes `is` throughout.
-]
+`expect … is Ok(_)` asks whether a result has that shape, which is often all
+a test needs; `expect r == Ok(v)` compares the whole result when it isn't.
 
 #lead-in[
 Run the suite with `bynkc test .`:
@@ -303,8 +300,7 @@ value has to live in storage: chapter 4 shows what that changes.
 Two costs arrive later and are worth knowing about now. Changing the type of
 a field in an event is a breaking change, even when the JSON looks the same,
 because a subscriber may still hold an event written under the old rule
-(chapter 15). And at 0.330.4 a `Map` can't yet be keyed by an opaque type
-(bynk-lang/bynk#1982), so chapter 5 keys its maps by text.
+(chapter 15).
 
 Finally, the predicates are your judgement, not the compiler's. Nothing
 stops you writing `InRange(1, 1000)` when the warehouse's real limit is 50.

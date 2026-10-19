@@ -257,8 +257,7 @@ negative` merely re-checks a guarantee agent `Inventory`'s
 
 Every state a run can reach has already passed the invariant, so the property
 can't fail. Spend the test on something the agent doesn't already promise.
-At 0.330.4 the check catches a restated `invariant` but not a restated
-`transition` (bynk-lang/bynk#2018), so that one is up to you.
+The same check catches a property that restates a `transition`.
 
 #lead-in[
 The run:

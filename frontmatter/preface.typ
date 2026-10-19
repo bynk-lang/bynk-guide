@@ -74,12 +74,11 @@ hand, against a scratch account.
 
 == Limits, and their issue numbers
 
-At #book-meta.bynk-version some things don't work yet: a test that a release
-can't build, a deploy it refuses, a check it misses. The book doesn't hide
-them. Where the shop works around one, the page says so and gives the issue
-that tracks it, and the appendix lists them all. Most are already fixed on
-Bynk's main branch, and when a release includes the fixes, the book will move
-to it.
+A young language has gaps, and the book doesn't hide them. Where Bynk
+#book-meta.bynk-version doesn't do something a chapter needs, the page says
+so and gives the issue that tracks it, and the appendix lists them. When a
+release closes one, the book moves to that release and the chapter changes.
+Its first draft cited thirty such issues; this one cites one.
 
 The shop itself is at `bynk-lang/shop`, with tests and end-to-end scenarios
 of its own. Each chapter's version of it, exactly as printed, is in this

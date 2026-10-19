@@ -23,9 +23,9 @@ they come to. Orders doesn't need anything back from the ledger. It shouldn't
 even need to know there is one. That is an _event_: a fact one context
 announces, for any number of others to act on.
 
-This chapter adds the ledger, fed by two events from orders. It is also where
-the shop meets the edge of what Bynk 0.330.4 can test and deploy, and the
-chapter is plain about both.
+This chapter adds the ledger, fed by two events from orders, and then looks
+closely at what delivering an event actually involves, because it isn't
+what the word "event" might lead you to expect.
 
 == The fan-out you would write <ix-guide-13-the-fan-out-you-would-write>
 
@@ -75,11 +75,11 @@ nothing about who listened, or how it went. And an emission is held until the
 handler finishes. The events a handler emits are released after its body has
 run, so an event can't escape from a handler that faulted partway through.
 
-The `Order` agent would be a better place still. An agent's emissions are
-released only when its state commits, so `confirm` emitting `OrderPlaced` would
-tie the event to the state change exactly. At 0.330.4 a unit test of an agent
-that emits fails (bynk-lang/bynk#2050), so the shop emits from the route
-handler, right after `confirm`.
+An agent can emit too, and its emissions are released only when its state
+commits, so `confirm` emitting `OrderPlaced` would tie the event to the state
+change exactly. The shop emits from the route handler instead, right after
+`confirm`, beside the other cross-context steps that handler coordinates.
+Either is sound; the agent is the tighter of the two.
 
 == Subscribing <ix-guide-13-subscribing>
 
@@ -90,7 +90,7 @@ events:
 
 #code-listing(
   [The ledger's context],
-  source-lines(ledger, 0, 4),
+  source-lines(ledger, 0, 5),
   lang: "bynk",
 )
 
@@ -100,7 +100,7 @@ Its state is one agent, the books:
 
 #code-listing(
   [The books],
-  source-lines(ledger, 25, 53),
+  source-lines(ledger, 26, 54),
   lang: "bynk",
 )
 
@@ -110,7 +110,7 @@ And a subscriber for each event:
 
 #code-listing(
   [Counting a placed order],
-  source-lines(ledger, 54, 74),
+  source-lines(ledger, 55, 75),
   lang: "bynk",
 )
 
@@ -139,8 +139,8 @@ ledger announce them:
   [A ledger that emits an orders event],
   source-lines(
     "../snippets/chapter-13/foreign-emit/src/shop/ledger.bynk",
-    54,
-    63,
+    55,
+    64,
   ),
   lang: "bynk",
 )
@@ -168,7 +168,7 @@ the ledger is on 8788 and orders moves up to 8789:
 The books count the order as soon as it is placed, and take it off when it is
 cancelled. A customer without the `admin` claim is `403`.
 
-== What delivery means, at 0.330.4 <ix-guide-13-what-delivery-means>
+== What delivery means <ix-guide-13-what-delivery-means>
 
 The books were up to date by the next request, and the emitted code shows why.
 
@@ -183,17 +183,10 @@ fan-out, a Durable Object the compiler adds, and waits for it:
   lang: "typescript",
 )
 
-#lead-in[
-The fan-out calls each subscriber's Worker through a Service Binding:
-]
-
-#code-listing(
-  [In orders' `events_fanout.ts`],
-  read("../snippets/chapter-13/emitted/deliver.ts"),
-  lang: "typescript",
-)
-
-Three things follow, and none of them is obvious from the source.
+The fan-out calls each subscriber's Worker through a Service Binding, signing
+each delivery with the key for that pair of contexts, as a call between them
+is signed, and catches any failure. Three things follow, and none of them is
+obvious from the source.
 
 - *Delivery happens inside the request.* The `PUT` that places an order
   doesn't answer until the ledger has counted it. A slow subscriber makes
@@ -202,14 +195,14 @@ Three things follow, and none of them is obvious from the source.
   or can't be reached, the fan-out logs `EventsFanout delivery failed`, with
   the event and the subscriber, and moves on. There is no retry and no log to
   replay from. The order is placed and the books miss it.
-- *`Idempotency` remembers in memory.* At 0.330.4 its provider keeps keys in
-  the isolate, so they are gone when Cloudflare recycles it, and two isolates
+- *`Idempotency` remembers in memory.* Its provider keeps keys in the
+  isolate, so they are gone when Cloudflare recycles it, and two isolates
   don't share them.
 
 So the shop's dedup guards against the duplicate deliveries that the design's
-at-least-once guarantee allows. The failure this release actually has is a
+at-least-once guarantee allows. The failure delivery actually has today is a
 missed event, and that one is logged rather than prevented. Both are named in
-the events guide's account of what the track doesn't yet give you.
+the events guide's account of what Bynk's events don't yet give you.
 
 A ledger that had to be right would keep the event ids it has seen in the
 agent's own storage, as payments keeps its webhook notices in chapter 10, and
@@ -219,28 +212,26 @@ shop's staff, and it can afford to be approximately right.
 == Testing it <ix-guide-13-testing-it>
 
 #lead-in[
-The books are an agent, so they are tested like one:
+The books are an agent, so they are tested like one, and a subscriber is
+given an event with `.event`:
 ]
 
 #code-listing(
   [The ledger's suite],
   read("../snippets/chapter-13/shop/tests/shop/ledger.bynk"),
   lang: "bynk",
+  breakable: true,
 )
 
-The subscribers are another matter. A test can address a service by `call`,
-by an HTTP route, by a cron schedule or by a WebSocket message, but not by an
-event (bynk-lang/bynk#2052). So `OnPlaced`'s dedup has no unit test. The
-`system` tier does deliver events, but chapter 11 warned that the shop would
-lose its `system` suite here: a subscriber to events that carry commons types
-doesn't build as a Worker under `tsc` (bynk-lang/bynk#2027, fixed on Bynk's
-main branch and not yet released). The suite from chapter 11 is gone, and the
-delivery is checked end to end, by the transcript above and the shop's
-scenarios.
+`OnPlaced.event(e, env)` delivers `e` through the subscriber's generated
+handler, the path the fan-out uses, so a pattern filter or a `via schema(N)`
+on the subscription would apply. The envelope is the test's to choose, and
+delivering the same one twice is exactly the duplicate the dedup is for.
 
-`bynk dev` isn't affected by that build failure, because Wrangler strips the
-types without checking them. Neither is `bynkc test`, which only builds the
-Workers for a `system` suite.
+The ledger's suite runs in process, so its `Idempotency` is the test double,
+which remembers for the length of the case. That is why the case passes: it
+checks the subscriber's logic, not the provider's memory, which the previous
+section said is shorter than the design promises.
 
 #code-listing(
   [The suites, run],
@@ -251,20 +242,26 @@ Workers for a `system` suite.
 
 == Deploying it <ix-guide-13-deploying-it>
 
-Chapter 12 deployed three Workers. With the ledger, `bynk deploy` refuses
-before it plans anything:
+#lead-in[
+Chapter 12 deployed three Workers. Now there are four:
+]
 
-#compiler-message(read("../snippets/chapter-13/cycle.txt"))
+#code-listing(
+  [The shop's deploy plan, with the ledger],
+  read("../snippets/chapter-13/plan.txt"),
+  lang: "text",
+  breakable: true,
+)
 
-Orders delivers events to the ledger through a Service Binding, so orders binds
-to the ledger. And the ledger's `consumes shop.orders`, there only to name the
-events, gives it a Service Binding to orders as well. Each Worker needs the
-other to exist before it can be uploaded. The fix is on Bynk's main branch
-(bynk-lang/bynk#1961): a consumer that only subscribes gets no binding. It
-isn't released yet.
-
-So at 0.330.4 the shop with a ledger runs under `bynk dev` and not on
-Cloudflare. The chapter 12 shop, without it, still deploys.
+The ledger deploys before orders, because orders delivers events to it
+through a Service Binding, so orders binds to the ledger. The ledger's
+`consumes shop.orders` is there only to name the events, and a context that
+only subscribes gets no binding back, so there is no cycle. Orders gains a
+key for the ledger, `BYNK_CALL_TO_SHOP__LEDGER`, which signs each delivery,
+and a second Durable Object, `__EventsFanout`, the fan-out the compiler
+added. A context that subscribes to another's events _and_ calls its
+services would be a cycle, and `bynk deploy` would refuse it, naming the
+cause.
 
 == What it costs <ix-guide-13-what-it-costs>
 
@@ -279,17 +276,15 @@ cancellation first, and the books would dip below zero for a moment. The
 ledger doesn't refuse that with an invariant, because refusing the
 cancellation would lose it.
 
-At 0.330.4 the costs of the release come on top: one delivery attempt, an
-in-memory `Idempotency`, no test address for a subscriber, no `system` suite,
-and no deploy. The hand-written queue at the start of the chapter has
-retries, and it deploys.
+And delivery itself is thinner than the design: one attempt, and an
+in-memory `Idempotency`. The hand-written queue at the start of the chapter
+has retries.
 
 == Where this leaves the shop <ix-guide-13-where-this-leaves-the-shop>
 
 Orders announces what happens to an order, and a ledger keeps the books from
-those announcements, with the event's type checked on both sides of the wire.
-Orders doesn't know the ledger exists. The ledger can't deploy until the next
-Bynk release.
+those announcements, with the event's type checked on both sides of the wire
+and each delivery signed. Orders doesn't know the ledger exists.
 
 The next chapter puts time into the shop: a sweeper that runs on a schedule and
 releases stock held by orders that never finished.

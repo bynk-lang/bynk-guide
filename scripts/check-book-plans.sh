@@ -44,6 +44,17 @@ fi
 printf 'Checking quoted deploy plans with %s\n\n' \
   "$("$BYNK" --version 2>/dev/null || printf '%s' "$BYNK")"
 
+# A quoted plan may wrap a long line onto continuation lines indented by four
+# spaces, so it fits the page. Each is joined back onto the line before it with
+# a single space before comparing. Plan output never starts a line with four
+# spaces.
+unwrap() {
+  awk '/^    / { sub(/^ +/, ""); line = line " " $0; next }
+       NR > 1 { print line }
+       { line = $0 }
+       END { if (NR > 0) print line }'
+}
+
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
@@ -69,7 +80,7 @@ while IFS=$'\t' read -r t k p a; do
   out="$(cd "$copy" && NO_COLOR=1 "$BYNK" deploy --dry-run "${local_args[@]}" </dev/null 2>&1)"
   rc=$?
   if ! d="$(diff -u --label "$t (quoted)" --label "$t (bynk deploy --dry-run)" \
-    "$SNIPPETS/$t" <(printf '%s\n' "$out"))"; then
+    <(unwrap <"$SNIPPETS/$t") <(printf '%s\n' "$out"))"; then
     printf 'FAIL    %-42s %s\n' "$t" "the quoted plan no longer matches (exit $rc)"
     printf '%s\n' "$d" | sed 's/^/          | /'
     fail=1

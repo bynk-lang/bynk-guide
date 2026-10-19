@@ -17,7 +17,7 @@ Each chapter shows what you would write by hand in TypeScript, builds the same
 thing in Bynk, and ends with *What it costs*. The reader, the scope and the
 principles are in [`notes/brief.md`](notes/brief.md).
 
-The book is pinned to **Bynk 0.330.4** and describes exactly that release.
+The book is pinned to **Bynk 0.371.3** and describes exactly that release.
 
 ## Getting the PDF
 
@@ -34,7 +34,7 @@ Or build it yourself (the script fetches the pinned Typst if needed):
 ```
 
 You don't need Bynk installed to read or review. You do if you want to run the
-examples: see chapter 1, *Installing the toolchain*, and install 0.330.4
+examples: see chapter 1, *Installing the toolchain*, and install 0.371.3
 exactly.
 
 ## What feedback helps most
@@ -79,7 +79,10 @@ Two things are **not** re-checked on every build:
 
 - **Cloudflare's side of a deploy.** Chapter 12's account of a real deploy
   (secrets, staging, `workers.dev`, logs) was checked once, by hand, against a
-  scratch account on 17 October 2026.
+  scratch account on 17 October 2026, with Bynk 0.330.4. What changed by
+  0.371.3 (a new Worker's secrets, the staging plan, signed internal calls,
+  the logged stack) is described from Bynk's changelog and hasn't been
+  re-checked live.
 - **The states in the issues appendix.** They are a dated snapshot. The list of
   issues itself is checked against the chapters.
 
@@ -87,21 +90,16 @@ Two things are **not** re-checked on every build:
 
 Please don't spend time reporting these; they are tracked.
 
-- **The pin will move.** Of the 30 Bynk issues and pull requests the chapters
-  cite, all but two were fixed on Bynk's main branch after 0.330.4. When a
-  release includes them, chapters 8, 11, 12, 13 and 15 will lose a good deal of
-  their workarounds: the `workers.dev` warning, the dropped `system` suite, the
-  deploy that the ledger can't make, and more. Review the teaching, and treat
-  the workarounds as accurate for 0.330.4 but not permanent.
-- **The shop can't be deployed in full at 0.330.4.** From chapter 13 on, `bynk
-  deploy` refuses the ledger's events as a binding cycle (fixed on main). The
-  chapters say so, and chapter 12's deploy is of the three-context shop.
+- **The pin moved once already.** The first draft was checked against
+  0.330.4 and worked around thirty Bynk issues; all were fixed by 0.371.3, and
+  this draft removes the workarounds. If a passage still reads like a
+  workaround, that is worth reporting.
 - **A deliberate bug.** From chapter 8 to chapter 14 the shop charges the card
   the unit price, not the order's total. Chapter 15 finds and fixes it as its
   example of changing a running system. This is intentional.
 - **Chapter 15's contract-skew example** uses a `bynk.deploy.lock` written to
-  record chapter 14's shop as live, since the shop couldn't actually be
-  deployed. The chapter says so.
+  record chapter 14's shop as live, rather than one from a real deploy. The
+  chapter says so.
 - **No index.** The section labels are in place for one; it hasn't been built.
 - **Few figures.** Apart from three tables, the book has no diagrams. If a
   chapter needs one (the contexts and their bindings in chapter 8, for
