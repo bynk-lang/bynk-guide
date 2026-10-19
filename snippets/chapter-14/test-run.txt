@@ -1,5 +1,15 @@
 Running tests...
 
+integration · shop.orders:
+order for 7500 cents
+  ✓ an order is placed across three Workers
+
+integration · shop.payments:
+processor unavailable for o1
+  ✓ with no processor configured, a charge fails closed over the wire
+  ✓ with the fake processor, a charge is approved over the wire
+  ✓ an unsigned or forged notice is refused at the boundary
+
 shop.inventory:
   ✓ restocking adds to what is available
   ✓ a reservation holds stock for its order, once
@@ -19,6 +29,7 @@ shop.ledger:
   ✓ the books start empty
   ✓ a placed order is counted
   ✓ a cancelled order is taken off again
+  ✓ an event delivered twice is counted once
 
 shop.orders:
   ✓ a line that fits its types is admitted
@@ -46,4 +57,4 @@ shop.payments:
   ✓ a notice that does not follow from the status is refused
   ✓ a notice for a payment the shop never recorded is refused
 
-38 passed, 0 failed.
+43 passed, 0 failed.

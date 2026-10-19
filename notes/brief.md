@@ -66,41 +66,26 @@ uses:
 
 - Every listing is a snippet project under `snippets/`, held by three gates
   (`bynkc check`, `bynkc fmt --check`, and a build with `tsc --strict`).
-- The book pins one Bynk release (`0.330.4`) and prints it.
+- The book pins one Bynk release (`metadata.typ`'s `bynk-version`, matched in
+  CI against `snippets.yml`) and prints it.
 - The org canary re-runs the gates against every new release and opens a
   `canary` issue when a chapter stops being true. A deliberate revision, and a
   bump of the pin, then closes it.
-- **Planned bump.** At 0.330.4 a deployed context answers its internal
-  services on every route, with any claimed caller (chapter 8). When a release
-  includes per-edge call signing (bynk-lang/bynk#2012), move the pin to it and
-  revise chapter 8's warning, its note on running beside an existing Worker,
-  chapter 12's deploy steps, and the shop's README.
+- **Moving the pin.** Install the release beside the current one, run every
+  gate against it, regenerate what it quotes (plans, test runs, excerpts),
+  then sweep the prose: `grep -rn "<old version>\|#[0-9]\{4\}" chapters/`.
+  Every cited issue that is fixed loses its workaround and its citation; the
+  appendix and `scripts/check-book-issues.sh` follow. Chapter 12's account of a
+  live deploy was checked by hand at 0.330.4; repeat it when the deploy
+  changes.
 
-## Teaching around the open bugs
+## Teaching around open bugs
 
-The shop works around these upstream bugs. The book teaches the working form and
-says why, rather than teaching what the compiler accepts but the runtime breaks:
-
-- **Service coordinates, agent owns state** (bynk-lang/bynk#1960). Cross-context
-  calls are made from the service, not inside an agent handler. Present this as
-  the pattern, with a note.
-- **Events and deploy** (bynk-lang/bynk#1961). The full shop can't deploy while an
-  event crosses contexts, so deploy is taught on the two-context subset before
-  events are added, and the events chapter says so.
-- **Event fan-out in the `system` test tier** (bynk-lang/bynk#1959). Events are
-  tested end to end against `bynk dev`.
-- **An adapter's binding is out of reach of `bynkc test`** (bynk-lang/bynk#1975).
-  The binding is tested with `node --test` against fake `Fetch` and `Secrets`.
-- **The secrets manifest misses reads** (bynk-lang/bynk#1976) in provider bodies
-  and adapter bindings, so `bynk deploy` doesn't warn about an unset payment
-  key. The deploy chapter says what to check by hand.
-- **Test-only checker gaps.** `expect r == Ok(v)` is mistyped in a test case
-  (bynk-lang/bynk#1979), so tests use `expect r is Ok(v)`. A test calling a
-  `by c: Caller` service needs `by Caller("…")` or `tsc` fails
-  (bynk-lang/bynk#1978).
-- **Folding collected `MapEntry`s emits an unimported type**
-  (bynk-lang/bynk#1977). Entries are projected into a named record before
-  `.collect()`, which is the idiom anyway.
+When the shop has to work around an upstream bug, the book teaches the working
+form and says why, with the issue number, rather than teaching what the
+compiler accepts but the runtime breaks. The first draft, at 0.330.4, cited
+thirty; all were fixed by 0.371.3, and the revision to that pin removed the
+workarounds. What is still open is listed in `backmatter/issues.typ`.
 
 ## Working principles
 

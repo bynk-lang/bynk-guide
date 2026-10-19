@@ -8,12 +8,12 @@ suite shop.payments {
 		expect n is Conflict(_)
 	}
 
-	case "the same notice, over the wire" as system {
+	case "the same notice, unsigned, over the wire" as system {
 		let n <- webhooks.POST("/webhooks/processor", WebhookEvent {
 			id: "evt_1",
 			event: "payment.captured",
 			payment: "auth_unknown",
-		})
-		expect n is Unauthorized
+		}) by Nobody
+		expect n is Rejected(Unauthorized)
 	}
 }

@@ -236,7 +236,7 @@ Run `bynk dev` with the processor set to the fake, and an order goes through:
 
 #code-listing(
   [Running with the fake processor],
-  "bynk dev --inspect -- --var AUTH_JWT_SECRET:not-a-secret \\\n  --var PAYMENTS_PROCESSOR:fake",
+  "bynk dev -- --var AUTH_JWT_SECRET:not-a-secret \\\n  --var PAYMENTS_PROCESSOR:fake",
   lang: "sh",
 )
 

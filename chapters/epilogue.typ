@@ -108,20 +108,16 @@ is green.
 
 == This book's pin <ix-guide-epilogue-this-books-pin>
 
-Every example was checked against Bynk #book-meta.bynk-version. Several of
-the limits these chapters describe are already fixed on Bynk's main branch:
+Every example was checked against Bynk #book-meta.bynk-version. The first
+draft of this book was checked against 0.330.4, and worked around thirty
+limits that are gone now: the shop couldn't deploy its ledger, its calls
+between contexts weren't signed, and a good deal of it couldn't be tested
+above the `unit` tier. Each was filed while the book was written, and each
+was fixed by the release this one uses.
 
-- the signing of every call between contexts, which makes the shop safe to run
-  for real (chapter 8, chapter 12);
-- the secrets the deploy plan couldn't see (chapter 12);
-- the binding cycle that stops the ledger deploying, and the Workers build
-  that stops it type-checking (chapter 13);
-- the `~>` handlers the `system` tier couldn't drive (chapter 11).
-
-When a release includes them, the book moves to it, and the chapters that
-work around them change. Others are filed and open. Each is named where it
-bites, with its issue number, so you can check whether it still applies to
-the release you are using.
+What remains is named where it bites, with its issue number, so you can check
+whether it still applies to the release you are using. The appendix lists
+them.
 
 If you find one this book missed, the place to say so is the issue tracker at
 `bynk-lang/bynk`. Most of the issues this book cites were found by writing it.

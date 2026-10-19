@@ -262,12 +262,9 @@ Run it:
   lang: "text",
 )
 
-Chapter 2's test that called the route is gone, and not by choice. At
-0.330.4 a test can't call a route whose handler uses `~>`: the test
-harness doesn't supply the execution context, and the generated test fails
-to compile (bynk-lang/bynk#1994). Until that is fixed, the route is covered
-by the transcript above, which CI replays against `bynk dev`, and the rule by
-the tests here.
+Chapter 2's test that calls the route still passes. Its handler now sends a
+log line with `~>`, and in a test every send is awaited before the case's
+expectations are checked, so a case never races its own handler.
 
 == The whole change <ix-guide-03-the-whole-change>
 

@@ -51,7 +51,7 @@ the issue, as `brief.md` asks.
 5. **Other kinds of storage**
    `Inventory` arrives as a second agent: `available: Cell[Int]` changed with
    `update` (an effect, awaited with `let _ <-`), `holds: Map[String, Hold]`
-   keyed by order id as text (`orderRef`, until bynk-lang/bynk#1982), so
+   keyed by order id as text (`orderRef`), so
    reserving twice holds once, and `held` totals the holds with a `Query`.
    `StockError` is the shop's first `enum`. Then a standalone context for
    `Log` with `@retain`, `Cache` with `@ttl`, and `Kv`. Refusals: a `Query`
@@ -71,8 +71,8 @@ the issue, as `brief.md` asks.
    cancelled, with an illustrative failing run (a shrunk counterexample).
    Refusals: `:=` reading its own cell (`bynk.cell.self_reference`), and a
    history property that restates an invariant
-   (`bynk.history.restates_invariant`; a restated transition isn't caught yet,
-   bynk-lang/bynk#2018).
+   (`bynk.history.restates_invariant`, which also catches a restated
+   transition).
    *Replaces:* status strings and defensive checks. *Shop:* `Order`'s
    lifecycle, rejecting on insufficient stock, `POST /orders/:id/cancel`, and
    the stock invariant (bynk-lang/shop#7 adds the transitions to the shop).
@@ -86,26 +86,21 @@ the issue, as `brief.md` asks.
    `by who: Customer | Visitor`, answering an `Availability` sum. Refusals:
    a refinement in a sum (`bynk.actor.refinement_in_sum`), and `Visitor`
    first (`bynk.actor.unreachable_sum_arm`). The transcript uses real tokens
-   (`responses.env`) and `--var AUTH_JWT_SECRET`. A test can't call an
-   `Admin` route (bynk-lang/bynk#2019) or a sum route (bynk-lang/bynk#2020).
+   (`responses.env`) and `--var AUTH_JWT_SECRET`. A test calls an `Admin`
+   route with the base identity, and a sum route as any member.
    *Replaces:* auth middleware. *Shop:* `Customer` and `Admin`, owners, and
    the public stock lookup (bynk-lang/shop#8).
 8. **Contexts and Service Bindings**
-   The shop splits into `shop.orders`, `shop.inventory` and `shop.payments`,
-   all `uses shop.values`. `exports transparent`, `on call` services with
-   `by c: Caller`, `consumes … as`; a service coordinates, an agent owns
-   state (bynk-lang/bynk#1960). Payments is `fakeCharge`, a pure function,
-   until chapter 9. Compensation by hand (release and reject on a declined
-   payment) and why it isn't crash-safe; sagas are planned; chapter 14's
-   sweeper. Refusals: another context's agent called directly
-   (`bynk.consumes.unknown_service`), and a `consumes` cycle
-   (`bynk.context.consumes_cycle`). Running several contexts needs `--inspect`
-   (bynk-lang/bynk#1954). Beside an existing Worker (bynk-lang/bynk#1973). A
-   warning: at 0.330.4 a deployed context answers its `on call` services on
-   its `workers.dev` address with any claimed caller; fixed upstream, not yet
-   released (bynk-lang/bynk#2004, #2012). Turning `workers.dev` off doesn't
-   last (each deploy re-enables it), so chapter 12 says to try the shop, not
-   run it for real, until the pin moves past the fix.
+   Orders, inventory and payments as contexts sharing `shop.values`;
+   `exports transparent`, `on call` services with `by c: Caller`, `consumes … as`;
+   a service coordinates and an agent owns state (an agent may call another
+   context; the shop chooses not to). Compensation by hand and why it isn't
+   crash-safe; sagas are planned; chapter 14's sweeper. `let … else` named as
+   the way to flatten the placement handler. Refusals: another context's agent
+   (`bynk.consumes.unknown_service`) and a `consumes` cycle. Beside an existing
+   Worker: `Foreign` actors, the typed `bynk-client.ts`, and the experimental
+   `Service` capability. Internal calls are signed per pair of contexts, so
+   `workers.dev` exposes nothing internal.
    *Replaces:* Service Binding glue and hand-typed RPC. *Shop:* orders,
    inventory, payments.
 9. **Capabilities and providers**
@@ -130,64 +125,46 @@ the issue, as `brief.md` asks.
     capability (`bynk.provider.unknown_capability`). The transcript shows
     three refused webhooks (unsigned, forged, stale; the stale one's
     signature is in `responses.env`). The binding is tested with
-    `node --test` (bynk-lang/bynk#1975), and the test gate now runs those.
+    `node --test`, and the test gate runs those.
     *Replaces:* a hand-written webhook verifier. *Shop:* already has it all;
     the chapter's copy is rewrapped to fit the page.
 
 ## Part IV: Confidence and delivery
 
 11. **Testing at three tiers**
-    `unit` (stubs, observation, properties, platform doubles), `integration`
-    (one word, same body), and `system` (a suite of its own, context-path
-    calls, participants from `consumes`, real JSON wire in Node). The `system`
-    example is payments: fail-closed over the wire, and an unsigned notice
-    refused at the boundary. Refusals: a unit case that crosses contexts
-    (`bynk.tier.cross_context_needs_system`), and a mixed suite
-    (`bynk.tier.mixed_system_suite`). Where `system` stops at 0.330.4: no
-    Worker with `~>` routes (fixed by bynk-lang/bynk#2005, unreleased),
-    stubs ignored (bynk-lang/bynk#2026), literal arguments not admitted
-    (bynk-lang/bynk#2025). Beyond `bynkc test`: binding tests and e2e against
-    `bynk dev`. Habits: `is` (#1979), `by Caller` (#1978), local names (#2024).
-    *Replaces:* vitest with Miniflare, spies, and hand-wired integration tests.
+    Unit, integration, system. `system` suites for payments (`env { … }`,
+    `by Nobody`, `by Forged`) and for the whole order flow across three
+    Workers. Refusals: `bynk.tier.cross_context_needs_system`,
+    `bynk.tier.mixed_system_suite`, `bynk.stub.at_system`. What else
+    `system` drives (`.schedule`, `.message`, `advance Clock`) and `bynk test
+    --against`. The run heads `system` suites `integration`
+    (bynk-lang/bynk#2185). Beyond `bynkc test`: binding tests in Node and e2e
+    against `bynk dev`.
+    *Replaces:* a Miniflare harness.
 12. **Run it, ship it, debug it**
-    `bynk deploy` and its dry-run plan (gated by `check-book-plans.sh`):
-    order from `consumes`, advisory Durable Objects, `declared`/`read`/
-    `supplied` secrets. At 0.330.4 the plan misses reads in provider bodies
-    and adapter bindings and still says complete (bynk-lang/bynk#1976, fixed
-    unreleased by #1997), so `PAYMENTS_API_KEY` is checked by hand. Supplied
-    secrets go to every context (ADR 0195), so the key goes on with a scoped
-    `--context shop.payments --secret` run; declared values come from the
-    environment. `--env` and `bynk.deploy.lock`; the staging plan's unsuffixed
-    names (bynk-lang/bynk#2028, fixed on main by #2034; the deploy itself
-    suffixes). bynk-ci and bynk-deploy. `workers.dev`: no
-    durable workaround at 0.330.4. Debugging: `bynk dev --inspect`, `Logger`,
-    the emitted fault handler (tail gets the message, no stack, so an
-    uploaded source map has nothing to map), and the quiet `503`
-    when the key is missing. *Shop:* payments logs why it fails closed.
-    *Replaces:* a deploy script, and `console.log` debugging.
-    *Deploys:* the shop without events. Checked once against a live
-    scratch account at 0.330.4 (2026-10-17): first-deploy secrets land
-    after the upload, a redeploy plan says `redeploy`, staging suffixes.
-    Repeat the live run when the pin moves.
-
+    `bynk deploy` and its dry-run plan (gated by `check-book-plans.sh`, which
+    allows wrapped lines): order from `consumes`, advisory Durable Objects,
+    `declared`/`read`/`supplied`/`managed` secrets, and `secrets incomplete`
+    for the gateway binding's reads. Supplied secrets go to every context, so
+    the processor's key goes on with a scoped `--context shop.payments
+    --secret` run. `--env` (the plan names `-staging` Workers) and
+    `bynk.deploy.lock`. bynk-ci and bynk-deploy. `workers.dev`: the address
+    returns each deploy, but unsigned internal calls get `401`. Debugging:
+    `bynk dev --inspect`, `Logger`, the logged stack, `--upload-source-maps`,
+    and the quiet `503` when the key is missing. *Shop:* payments logs why it
+    fails closed. The live check was at 0.330.4 (2026-10-17); repeat it.
 ## Part V: Beyond a request
 
 13. **Events**
     Opens Part V. Orders declares `OrderPlaced` and `OrderCancelled` and emits
-    them from its route handlers (emitting from the `Order` agent would tie the
-    event to its commit, but a unit test of such an agent fails:
-    bynk-lang/bynk#2050). The ledger: `Books` agent, a subscriber per event
-    deduping on `env.eventId` with `Idempotency`, `GET /totals` for an
-    `Admin`. Refusal: `bynk.event.emit_outside_owner`. Delivery at 0.330.4,
-    from the emitted code: inside the request, attempted once, a failure
-    logged and dropped; `Idempotency` is in memory. Subscribers can't be
-    addressed from a test (bynk-lang/bynk#2052), and the `system` suite goes
-    (bynk-lang/bynk#2027, fixed on main; the Workers build is in
-    `snippets/EMIT-BASELINE`). `bynk deploy` refuses the binding cycle
-    (bynk-lang/bynk#1961, fixed on main by #1998), quoted through the plan
-    gate. *Replaces:* hand-rolled queues and fan-out. *Shop:* the ledger.
-    When the pin moves: restore a `system` suite, try the deploy, and drop
-    the baseline line.
+    them from its route handlers (an agent could; its emissions release at
+    commit). The ledger (`uses shop.values`): `Books` agent, a subscriber per
+    event deduping on `env.eventId` with `Idempotency`, `GET /totals` for an
+    `Admin`. Refusal: `bynk.event.emit_outside_owner`. Delivery, from the
+    emitted code: inside the request, signed per edge, attempted once, a
+    failure logged and dropped; `Idempotency` is in memory. Tested with
+    `OnPlaced.event(e, env)`, twice. The four-context deploy plan.
+    *Replaces:* hand-rolled queues and fan-out. *Shop:* the ledger.
 14. **Time and queues**
     Holds gain `at: Instant` from `Clock`; `commit` turns a hold into a sale,
     and orders commits after payment (`409 reservation expired` if the
@@ -199,25 +176,21 @@ the issue, as `brief.md` asks.
     (gated). `--test-scheduled` and `/__scheduled` (transcript), and
     `.schedule` in tests. A queue: `service deliveries from
     queue("stock-deliveries")`, deduped by delivery id in a `Log` in the
-    agent; tested with `.message`. Bynk can't produce queue messages at
-    0.330.4. *Replaces:* a hand-written `scheduled` handler and queue
+    agent; tested with `.message`. Bynk can't produce queue messages yet.
+    *Replaces:* a hand-written `scheduled` handler and queue
     consumer. Closes chapter 8's gap.
 15. **Changing a deployed system**
     What outlives a deploy: stored state, events, calls. Stored state:
-    rehydration validation (add/remove safe, tighten faults with
-    `RehydrationViolation`; breaking changes by convention). Events:
-    `OrderPlaced` gains `customer: String = ""`; the `bynk.schema.lock` diff
-    (schema 1 → 2; snippets' locks are now gated against what compiling
-    writes); refusal `bynk.event.non_additive_schema_change` (a
-    `build-fail` row); `bynkc check`/`test` don't consult the registry
-    (bynk-lang/bynk#2078). Calls: the shop has charged the unit price since
-    chapter 8; the fix passes the total and renames `authorise`'s parameter
-    to `amount`, a contract change. `bynk.deploy.contract_skew` for
-    `--context shop.orders` against a lock recording chapter 14 as live
-    (`chapter-15/skew`, plan gate); `--context shop.payments` isn't refused
-    (bynk-lang/bynk#2077). What 1.0 is still to settle. *Replaces:*
-    hand-written storage migrations and versioned RPC.
-
+    rehydration validation. Events: `OrderPlaced` gains
+    `customer: String = ""`; the `bynk.schema.lock` diff (schema 1 → 2;
+    committed locks are gated); refusal `bynk.event.non_additive_schema_change`
+    at check time. Calls: the shop has charged the unit price since chapter
+    8; the fix passes the total and renames `authorise`'s parameter, a
+    contract change. Against a lock recording chapter 14 as live (with
+    `contracts` and `expects`), both `--context shop.orders` and
+    `--context shop.payments` are refused (`bynk.deploy.contract_skew`).
+    What 1.0 is still to settle. *Replaces:* hand-written storage migrations
+    and versioned RPC.
 ## Epilogue: Where to go next
 
 Unnumbered (`chapters/epilogue.typ`). A table of what each chapter replaced.
@@ -234,13 +207,8 @@ assets, sagas (pointer to the planned-features appendix), and the language
 server and editor tooling. The `bundle` target is introduced in chapter 1 and
 then set aside.
 
-Chapter 8 gives one paragraph to the reader who adopts Bynk piecemeal, beside
-an existing TypeScript Worker. Checked against the emitted Workers at the
-pin, 0.330.4: a Bynk `on call` service is a plain
-`POST /_bynk/call/<service>` with a JSON body over a Service Binding, so a
-hand-written Worker can call it, but it must send the `X-Bynk-Contract` hash
-from `bynk-contracts.json` and an `X-Bynk-Caller` identity, and the hash
-changes whenever the signature does. That is an internal protocol, not an API.
-The supported seams are the other way round: put the Bynk Worker in front, or
-call its `from http` routes. Say that, don't teach the wire format, and
-footnote the interop track (bynk-lang/bynk#1973).
+Chapter 8 gives one section to the reader who adopts Bynk piecemeal, beside
+an existing TypeScript Worker: `Foreign` actors, the generated
+`bynk-client.ts`, and the experimental `Service` capability, pointing at the
+Book's "Adopt Bynk beside a TypeScript Worker". It doesn't teach the wire
+format.

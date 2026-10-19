@@ -1,4 +1,5 @@
 #import "../template.typ": code-listing, compiler-message, lead-in
+#import "../metadata.typ": book-meta
 
 // Lines from..to of a snippet file, without the leading tabs they all
 // share, so an excerpt from inside a handler isn't printed far to the right.
@@ -22,8 +23,8 @@ This chapter steps back and puts it in order. Bynk has three _tiers_ of test,
 and they answer different questions: does this unit's logic hold, does it hold
 with its real collaborators, and does the flow hold across the wire between
 Workers? The useful thing to learn is which question a test is asking, and so
-which tier it belongs to. The other thing to learn, at 0.330.4, is where the
-top tier stops, because it stops sooner than it should.
+which tier it belongs to, and so how much of the world it needs to make
+real.
 
 == The harness you would build <ix-guide-11-the-harness-you-would-build>
 
@@ -149,7 +150,7 @@ over the wire:
 ]
 
 #code-listing(
-  [A `system` suite],
+  [A `system` suite for payments],
   read("../snippets/chapter-11/shop/tests/shop/payments_system.bynk"),
   lang: "bynk",
 )
@@ -157,17 +158,39 @@ over the wire:
 `suite shop.payments as system` stands the payments context up as the Worker
 it deploys as, with every context it consumes. The case addresses a service by
 its context path, `shop.payments.authorise(…)`, as another context would,
-and the call is serialised to JSON, sent through a Service Binding, checked on
-arrival, and its answer serialised back. That is the edge chapter 8 described,
-and no in-process tier touches it. A `system` suite names the commons it uses,
-here `shop.values`, because it isn't inside the context.
+and the call is serialised to JSON, signed, sent through a Service Binding,
+checked on arrival, and its answer serialised back. That is the edge chapter 8
+described, and no in-process tier touches it. A `system` suite names the
+commons it uses, here `shop.values`, because it isn't inside the context.
 
 The first case checks the fail-closed rule from chapter 9, over the wire: with
-no processor configured, a charge is `Unavailable`. The second sends a notice
-to the webhook. At this tier the harness signs a `Bearer` caller's token from
-a `by` clause, but a `Signature` caller needs the shared secret, so the notice
-goes unsigned and the boundary refuses it. That is the real check, running in
-the real Worker.
+no processor configured, a charge is `Unavailable`. The second gives the Worker
+an environment with `env { … }`, the variables and secrets Wrangler would
+set, and the fake processor answers. The third tests the webhook's seam. A
+`Signature` route is signed by the harness the way its actor declares, so a
+plain call would get through; `by Nobody` sends no signature and `by Forged`
+signs with the wrong secret, and the real Worker refuses both before the
+handler runs.#footnote[
+  The Bynk Book's testing reference, “Configuring a suite” and “Testing the
+  auth seam”.
+]
+
+#lead-in[
+And the order flow, end to end:
+]
+
+#code-listing(
+  [A `system` suite for orders],
+  read("../snippets/chapter-11/shop/tests/shop/orders_system.bynk"),
+  lang: "bynk",
+)
+
+This case stands up three Workers: orders, and the inventory and payments
+contexts it consumes. It restocks as an `Admin`, places an order as a
+`Customer`, and reads the level back. The harness signs each caller's token
+from its `by` clause, and every call between the Workers is a real, signed
+Service Binding call. This is the Miniflare harness from the start of the
+chapter, and none of its configuration had to be written.
 
 #lead-in[
 `system` doesn't mix with the lower tiers in one suite:
@@ -180,51 +203,56 @@ the real Worker.
 )
 
 #compiler-message[
-[bynk.tier.mixed_system_suite] Error: case `"the same notice, over the wire"`
-is `as system`, but other cases in its suite run below `system`
+[bynk.tier.mixed_system_suite] Error: case `"the same notice, unsigned, over
+the wire"` is `as system`, but other cases in its suite run below `system`
 ]
 
 A `system` case addresses services by context path and runs against built
 Workers, so it lives in its own suite, and its own file.
 
-== Where `system` stops, at 0.330.4 <ix-guide-11-where-system-stops>
+#lead-in[
+Nor does a `stub`. Try to switch the fake processor on by stubbing its
+setting, as chapter 9 did:
+]
 
-The `system` tier is the newest part of Bynk's testing, and at this book's
-release it stops short in five places. Each is fixed or filed upstream, and
-each shapes the suite above.
+#code-listing(
+  [A stub at `system`],
+  read("../snippets/chapter-11/system-stub/tests/shop/payments.bynk"),
+  lang: "bynk",
+)
 
-- *It can't drive a Worker whose routes use `~>`.* The orders Worker's
-  `fetch` takes the execution context that `~>` needs, and the harness calls it
-  without one, so the generated test doesn't compile. The fix is on Bynk's main
-  branch (bynk-lang/bynk#2005), not yet released. That is why the suite above
-  tests payments, not the order flow.
-- *A `stub` at `system` is accepted and ignored* (bynk-lang/bynk#2026). The
-  reference says a stub is legal at every tier; at 0.330.4 the Worker under
-  test reads the real seam. So a `system` case can't give a Worker a secret,
-  and the fake processor can't be switched on.
-- *A literal argument isn't admitted* to a refined parameter in a
-  context-path call (bynk-lang/bynk#2025). Bind it with a type first, as
-  `let cents: Cents = 2500` does.
-- *A project whose events carry commons types doesn't build as Workers
-  under `tsc`*, because a subscriber's serialiser names an unimported
-  namespace (bynk-lang/bynk#2027). `bynk dev` and `bynk deploy` don't notice,
-  since Wrangler strips types, but a `system` suite type-checks every Worker,
-  so once the shop's ledger subscribes to orders in chapter 13 the shop can't
-  have one.
-- *The output calls a `system` suite `integration`*: the run below lists it as
-  `integration · shop.payments`.
+#compiler-message[
+[bynk.stub.at_system] Error: `stub Secrets.get` is in a `system`-tier case,
+where a `stub` has no effect
+]
 
-None of this undermines the tier's design, which is the right one: the same
-body, real Workers, and participants found from the program. It means the
-whole order flow, at this release, is covered one level further out.
+Each Worker at `system` builds its own providers, as it would when deployed,
+so there is no seam to replace. Give it an environment with `env` instead, or
+keep the case at `unit` or `integration`, where a `stub` works.
+
+== What else `system` can drive <ix-guide-11-what-else-system-can-drive>
+
+A `system` case isn't limited to calls and routes. It can run a cron handler
+through the Worker's real `scheduled` entry, deliver a queue message through
+its real `queue` entry, and move the harness clock with `advance Clock by …`,
+which every Worker's `Clock` reads. Chapter 14 uses the first two from a
+`unit` suite; the same bodies promote unchanged. And `bynk test --against`
+runs the same `system` suites against a running `bynk dev`, or against a
+deployment you name, which is the step from a test of built Workers to a test
+of a live system.
+
+The output has one rough edge at #book-meta.bynk-version: it heads a `system`
+suite's results `integration`, as in the run below (bynk-lang/bynk#2185).
 
 == Beyond `bynkc test` <ix-guide-11-beyond-bynkc-test>
 
 Two kinds of test sit outside the tiers, and the shop uses both.
 
-The first is the binding's Node tests, from chapter 10. A Bynk test can't
-reach an adapter's binding at 0.330.4 (bynk-lang/bynk#1975), so the binding is
-tested as TypeScript, against fake capabilities.
+The first is the binding's Node tests, from chapter 10. An `integration` case
+can now run an adapter's real binding, with the binding's own capabilities
+taking the tier's doubles and stubs, so the binding could be tested from Bynk
+with `Fetch.send` stubbed. The shop keeps its Node tests, which test the
+binding as the TypeScript it is, against fake capabilities.
 
 The second is end to end, against `bynk dev`: real Workers in Wrangler's local
 runtime, real HTTP, real tokens and real signatures. The shop's
@@ -232,20 +260,6 @@ runtime, real HTTP, real tokens and real signatures. The shop's
 webhooks and a sweep of stale holds. Every transcript in this book is the same
 kind of test: CI starts `bynk dev` on the chapter's project, replays each
 request, and compares what comes back with the page.
-
-== Habits that save a failing build <ix-guide-11-habits>
-
-Three habits from earlier chapters exist because of bugs at 0.330.4, and are
-worth keeping until the pin moves:
-
-- Compare results with `is`, as in `expect r is Ok(v)`, not `==`, which is
-  checked against the wrong type inside a case (bynk-lang/bynk#1979).
-- Name the caller when a test calls an `on call` service:
-  `… by Caller("shop.orders")`. Leaving it out passes the check and fails the
-  build (bynk-lang/bynk#1978; fixed upstream, unreleased, by requiring it).
-- Don't name a test's local after a service of the unit under test. `let
-  level <- …` beside `service level` passes the check and fails the build
-  (bynk-lang/bynk#2024).
 
 #lead-in[
 The whole run:
@@ -258,13 +272,14 @@ The whole run:
   breakable: true,
 )
 
+`order for 7500 cents` is the orders Worker's own `Logger` line, printed by
+the real Worker the `system` case stood up.
+
 == What it costs <ix-guide-11-what-it-costs>
 
 Three kinds of runner check this shop: `bynkc test`, `node --test` for the
-binding, and a shell script against `bynk dev`. Each is there because the one
-before stops short, and at 0.330.4 the `system` tier stops sooner than it will.
-That is more machinery than a project should need, and it will shrink as the
-fixes above are released.
+binding, and a shell script against `bynk dev`. Each answers a question the
+others don't, but it is still three things to keep running.
 
 The tiers are about realness, not speed or isolation. A `system` case is still
 in process and still fast, but it tests built Workers, so a failure there can

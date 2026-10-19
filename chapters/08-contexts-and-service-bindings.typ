@@ -98,9 +98,9 @@ services the context offers:
 An `on call` service is a handler other contexts call, not customers. Another
 context reaches it through a Service Binding. `by c: Caller` names who called:
 `c.identity` is the calling context's qualified name, such as `"shop.orders"`,
-stamped by the compiler at the call site. It tells you who is asking, not
-whether they may. (How private that channel really is, at 0.330.4, comes up at
-the end of the chapter.)#footnote[
+stamped by the compiler at the call site, and signed, so a context can't
+claim to be another. It tells you who is asking, not whether they may. (How
+that signing works comes up at the end of the chapter.)#footnote[
   The Bynk Book, “Consume another context's services” and “Know which context
   called you”.
 ]
@@ -173,11 +173,12 @@ offer. That is what makes a context a boundary: the inventory context can
 change how it stores stock without asking anyone, so long as its services
 still mean the same thing.
 
-There is a second rule, which the compiler doesn't yet enforce. The `Order`
-agent could, in principle, call `Stock.reserve` itself. At 0.330.4 that
-compiles and then fails at run time (bynk-lang/bynk#1960), so in this shop the
-`api` service makes every call to another context, and the agents keep to
-their own state. Because of the pattern above, the shop doesn't miss it.
+The `Order` agent could call `Stock.reserve` itself; an agent's handler may
+call another context, as a service's may. The shop doesn't, by choice: the
+`api` service makes every call to another context, and each agent keeps to its
+own state. A service coordinates and an agent owns, and keeping the two apart
+means an agent's handler never waits on another Worker while it holds its own
+state.
 
 == No cycles <ix-guide-08-no-cycles>
 
@@ -224,13 +225,12 @@ refused with a `409` instead of being misread. Chapter 15 is about that.
 
 `bynk dev` now serves three Workers, on consecutive ports in the order of
 their names: inventory on 8787, orders on 8788, payments on 8789. The bindings
-between them are wired. At 0.330.4 several contexts also need `--inspect`, or
-their debuggers collide on one port and they fail to start
-(bynk-lang/bynk#1954):
+between them are wired, and each signs and checks its calls with a fixed local
+key:
 
 #code-listing(
   [Running three contexts],
-  "bynk dev --inspect -- --var AUTH_JWT_SECRET:not-a-secret",
+  "bynk dev -- --var AUTH_JWT_SECRET:not-a-secret",
   lang: "sh",
 )
 
@@ -269,14 +269,22 @@ chapter 14 adds a job that releases holds left too long.
 You may not be starting from nothing. If you have Workers already, the
 question is how a Bynk context sits beside them.
 
-The safe ways are the public ones. Put the Bynk Worker in front of your
+The simplest way is the public one: put the Bynk Worker in front of your
 existing ones, or call its `from http` routes from them, as any client would.
-A hand-written Worker _can_ call a Bynk context's `on call` services over a
-Service Binding, but at 0.330.4 only by imitating the compiler: a private
-request path, a contract hash copied from the build, and a caller name it
-simply asserts. That is an internal protocol, not an API. Upstream has since
-documented the protocol and started signing every internal call, but neither
-is in a release yet; the work is tracked as bynk-lang/bynk#1973.
+
+A TypeScript Worker can also call a context's `on call` services directly,
+over a Service Binding. The context declares it as an actor with the `Foreign`
+scheme and names that actor in each service it may call. The build then writes
+a typed TypeScript client for it, `bynk-client.ts`, with one function per
+service the actor is admitted to, and `bynk deploy` mints the key the two
+Workers sign their calls with. The other direction works too: a context can
+call a Worker outside the project through an experimental `Service`
+capability.#footnote[
+  The Bynk Book, “Adopt Bynk beside a TypeScript Worker”.
+]
+
+So you can move a system over one Worker at a time. The shop doesn't need to,
+but a real migration would start here.
 
 == Testing a context <ix-guide-08-testing-a-context>
 
@@ -294,8 +302,9 @@ Caller(…)`:
   lang: "bynk",
 )
 
-Leave the `by Caller(…)` out and, at 0.330.4, the check passes and the test
-fails to compile (bynk-lang/bynk#1978), so write it every time.
+Leave the `by Caller(…)` out and the check refuses the case: a service that
+binds `by c: Caller` needs to know who is calling, in a test as in
+production.
 
 A test of the orders routes would now cross into inventory and payments, and a
 unit test runs one context in process. Testing all three together is the
@@ -316,24 +325,27 @@ function call. Split along the lines your system really has, and no further.
 
 The placement handler is now six `match`es deep. Each level is a real
 decision, and the compiler makes sure none is missed, but it reads as a
-pyramid. Bynk has no `?` for a handler's `HttpResult`, as chapter 3 showed, so
-the alternative is to move the decisions into functions that return a
-`Result`, and match once.
+pyramid. Bynk has no `?` for a handler's `HttpResult`, as chapter 3 showed.
+`let … else` flattens it: `let Ok(_) <- Stock.reserve(…) else { … }` binds
+on success and handles the failure beside the step, so the chain reads top to
+bottom. The shop keeps the nesting, which shows each decision where it's
+made.#footnote[
+  The Bynk Book, “Work with `Result` and optional values”: `let … else`.
+]
 
 And compensation is yours. The type checker can see that `Stock.reserve`
 returns a `Result` that you handled. It can't see that you released the stock
 on every path that should.
 
-Finally, a warning that matters as soon as you deploy. At 0.330.4 the internal
-channel is less private than it looks. A context's Worker answers its
-`on call` services on every route it has, and a deployed Worker gets
-Cloudflare's `workers.dev` address. Anyone who finds that address can call the
-services, and name any caller they like. The fix is on Bynk's main branch,
-signing every call between contexts with a key per pair (bynk-lang/bynk#2004
-and #2012), and isn't in a release yet. Turning the address off doesn't last,
-because each deploy turns it back on, and it wouldn't protect a context with
-public routes of its own, because every route serves the internal paths.
-Chapter 12 comes back to this when it deploys.
+Finally, how private the channel between contexts is. A context's Worker
+answers its `on call` services on every route it has, including the
+`workers.dev` address Cloudflare gives a deployed Worker. What keeps them
+private is a signature. Each pair of contexts that call each other shares a
+key, which `bynk deploy` mints and sets on both Workers, and every call is
+signed with it. A Worker refuses a call whose signature doesn't verify for the
+caller it names, with a `401`, before anything else. So a request from the
+internet gets nowhere, and one context can't claim to be another. Chapter 12
+shows the keys in the deploy plan.
 
 == Where this leaves the shop <ix-guide-08-where-this-leaves-the-shop>
 

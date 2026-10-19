@@ -116,9 +116,8 @@ list:
 )
 
 `skus` is a map keyed by the sku's text, so adding one twice keeps one entry.
-It is keyed by text rather than by `Sku` itself because a map keyed by an
-opaque type doesn't build yet (bynk-lang/bynk#1982), the same reason the holds
-are keyed by `orderRef`.
+It is keyed by text, as the holds are keyed by `orderRef`, with the `Sku`
+itself as the value.
 
 #lead-in[
 `releaseStale` does one sku's work in one commit:
@@ -293,7 +292,7 @@ A test sends a message with `.message`:
   lang: "bynk",
 )
 
-What Bynk can't do at 0.330.4 is _send_ to a queue. Producing messages isn't a
+What Bynk can't do is _send_ to a queue. Producing messages isn't a
 first-party capability yet, so a queue in a Bynk program is always fed from
 outside it: here, the warehouse's own Worker. That is also why there is no
 transcript of a delivery under `bynk dev`: nothing in the shop can put a
@@ -312,8 +311,8 @@ The sweeper visits every sku in the catalogue, one after another, every five
 minutes, in a single invocation. That is fine for a shop with a few hundred
 products. With many thousands it could outrun what one scheduled invocation is
 allowed, and the usual fix is to have the cron put one message per sku on a queue and
-let a consumer do the work. At 0.330.4 a Bynk program can't send that
-message, so the fan-out would need a TypeScript Worker beside it.
+let a consumer do the work. A Bynk program can't send that message yet, so
+the fan-out would need a TypeScript Worker beside it.
 
 The catalogue only grows. A sku that is never stocked again is still visited,
 and nothing removes it.

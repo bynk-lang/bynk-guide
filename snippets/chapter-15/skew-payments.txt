@@ -1,3 +1,4 @@
-durable object Payment (sqlite; advisory — Cloudflare reconciles it)
-secret set PAYMENTS_WEBHOOK_SECRET (declared)
-redeploy shop-payments
+bynk: `shop-payments` no longer provides the contract its live callers were compiled against (bynk.deploy.contract_skew):
+  `shop-orders` calls shop.payments.authorise — compiled against febd15c2757b72e1, this build provides da0d725f3a004040
+  Deploying this would ship a callee that rejects its live callers (409 ContractMismatch) on every call.
+  Deploy the whole project (`bynk deploy`) so both sides move together.

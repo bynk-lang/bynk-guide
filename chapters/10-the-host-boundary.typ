@@ -296,11 +296,12 @@ tests are about what the shop does with a notice, not whether the notice is
 genuine. The transcript above, replayed against `bynk dev` in CI, covers the
 refusals.
 
-The TypeScript half is tested in TypeScript. At 0.330.4 a Bynk test can't
-reach an adapter's binding: an `as integration` case doesn't build the
-binding, and a suite aimed at the adapter doesn't compile
-(bynk-lang/bynk#1975). So the binding has tests of its own, run with Node
-against the JavaScript that `bynkc test` leaves in `out-js/`.
+The TypeScript half is tested in TypeScript. An `as integration` case can run
+an adapter's real binding, with its own capabilities taking the test doubles,
+but a binding is TypeScript, and its own edge cases (a `402`, a body that
+isn't JSON) are easiest to pin down in TypeScript. So the binding has tests of
+its own, run with Node against the JavaScript that `bynkc test` leaves in
+`out-js/`.
 
 #lead-in[
 They build the class with fake `Fetch` and `Secrets`, which the binding's
@@ -330,11 +331,10 @@ signature. `tsc` checks that `HttpGateway` implements `Gateway`; it can't check
 that a `402` means a declined card. That is what the binding's own tests are
 for, and they are yours to write.
 
-The configuration a binding reads is invisible to the build. At 0.330.4 the
-`bynk-secrets.json` manifest that `bynk deploy` checks doesn't see the
-`Secrets.get` calls inside a provider or a binding, so it won't warn that
-`PAYMENTS_API_KEY` is unset (bynk-lang/bynk#1976). Chapter 12 says what to
-check by hand.
+The configuration a binding reads is invisible to the build. The compiler
+sees a provider's `Secrets.get` calls, but not a binding's, so `bynk deploy`
+can only say that payments reads names it can't see; it can't name
+`PAYMENTS_API_KEY`. Chapter 12 says what to check by hand.
 
 The replay guard remembers ninety days. A notice replayed after that would be
 applied again, unless the state machine refuses it, as it does here: a

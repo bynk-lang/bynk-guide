@@ -271,13 +271,11 @@ The zero rule takes some getting used to. Every field needs an honest
 starting value, which often means an `Option` and a `match` where TypeScript
 would have let you write `!`.
 
-Two things don't work yet, and the shop steers round both. An agent handler
-shouldn't call another context: at 0.330.4 that compiles and then fails at
-run time, so from chapter 8 the shop's services make those calls and agents
-keep to their own state (bynk-lang/bynk#1960). And don't use `~>` on a store
-operation such as `update`: there is nothing to send, since writes commit
-together, and the compiler accepts it but the build then fails
-(bynk-lang/bynk#2017).
+And `~>` has no place in an agent's handler. A store operation such as
+`update` is part of the handler's commit, so there is nothing to send in the
+background, and the compiler refuses `~> count.update(…)`: write
+`do count.update(…)`. Any other send from an agent is refused too; await it
+with `let _ <-` or `do`.
 
 == Where this leaves the order <ix-guide-04-where-this-leaves-the-order>
 

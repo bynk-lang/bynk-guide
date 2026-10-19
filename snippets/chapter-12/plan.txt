@@ -1,9 +1,16 @@
 durable object Inventory (sqlite; advisory — Cloudflare reconciles it)
+secret set BYNK_CALL_FROM_SHOP__ORDERS (managed)
 deploy shop-inventory
 durable object Payment (sqlite; advisory — Cloudflare reconciles it)
+secrets incomplete shop-payments (reads at least one name the compiler
+    cannot see)
+secret set PAYMENTS_PROCESSOR (read)
 secret set PAYMENTS_WEBHOOK_SECRET (declared)
+secret set BYNK_CALL_FROM_SHOP__ORDERS (managed)
 deploy shop-payments
 durable object Order (sqlite; advisory — Cloudflare reconciles it)
 secret set AUTH_JWT_SECRET (declared)
+secret set BYNK_CALL_TO_SHOP__INVENTORY (managed)
+secret set BYNK_CALL_TO_SHOP__PAYMENTS (managed)
 deploy shop-orders
 order shop-inventory → shop-payments → shop-orders

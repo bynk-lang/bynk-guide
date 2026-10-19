@@ -1,22 +1,42 @@
-suite shop.ledger
--- The books. The subscribers that feed them can't be addressed from a
--- test at 0.330.4, so these cases drive `Books` directly.
+suite shop.ledger {
+	case "the books start empty" {
+		let t <- Books("main").totals()
+		expect t == Totals { orders: 0, units: 0, cents: 0 }
+	}
 
-case "the books start empty" {
-	let t <- Books("main").totals()
-	expect t == Totals { orders: 0, units: 0, cents: 0 }
-}
+	case "a placed order is counted" {
+		let _ <- Books("main").placed(3, 7500)
+		let t <- Books("main").totals()
+		expect t == Totals { orders: 1, units: 3, cents: 7500 }
+	}
 
-case "a placed order is counted" {
-	let _ <- Books("main").placed(3, 7500)
-	let t <- Books("main").totals()
-	expect t == Totals { orders: 1, units: 3, cents: 7500 }
-}
+	case "a cancelled order is taken off again" {
+		let _ <- Books("main").placed(3, 7500)
+		let _ <- Books("main").placed(1, 100)
+		let _ <- Books("main").cancelled(3, 7500)
+		let t <- Books("main").totals()
+		expect t == Totals { orders: 1, units: 1, cents: 100 }
+	}
 
-case "a cancelled order is taken off again" {
-	let _ <- Books("main").placed(3, 7500)
-	let _ <- Books("main").placed(1, 100)
-	let _ <- Books("main").cancelled(3, 7500)
-	let t <- Books("main").totals()
-	expect t == Totals { orders: 1, units: 1, cents: 100 }
+	-- The subscribers, given events as the fan-out would deliver them.
+
+	case "an event delivered twice is counted once" {
+		let e = OrderPlaced {
+			orderId: orderIdFrom("o1"),
+			sku: skuFrom("widget"),
+			qty: 3,
+			cents: 2500,
+			customer: "alice",
+		}
+		let env = EventEnvelope {
+			eventId: "evt_1",
+			publisherId: "shop.orders",
+			emittedAt: Instant.fromEpochMillis(0),
+			schemaVersion: 1,
+		}
+		let _ <- OnPlaced.event(e, env)
+		let _ <- OnPlaced.event(e, env)
+		let t <- Books("main").totals()
+		expect t == Totals { orders: 1, units: 3, cents: 7500 }
+	}
 }

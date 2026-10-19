@@ -22,3 +22,9 @@ case "an order over 100,000.00 is too large" {
 	}
 	expect total(line) is Err(TooLarge(_))
 }
+
+case "the route answers with the line it was given" {
+	let line = OrderLine { sku: skuFrom("widget"), qty: 3, cents: 2500 }
+	let r <- api.PUT("/orders/:id", orderIdFrom("o1"), line)
+	expect r is Created(_)
+}

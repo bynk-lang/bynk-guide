@@ -10,16 +10,36 @@ release = "3acf639281c16478"
 reserve = "84c770db15f03b29"
 restock = "1d3d08c1207893d1"
 
+[environments.default.workers.shop-inventory.expects]
+
 [environments.default.workers.shop-ledger]
 deployed = true
+
+[environments.default.workers.shop-ledger.contracts]
+
+[environments.default.workers.shop-ledger.expects]
 
 [environments.default.workers.shop-orders]
 deployed = true
 
 [environments.default.workers.shop-orders.contracts]
 
+[environments.default.workers.shop-orders.expects]
+
+[environments.default.workers.shop-orders.expects."shop.inventory"]
+commit = "176be8a1747ca78a"
+level = "1d0ed701fdb5890e"
+release = "3acf639281c16478"
+reserve = "84c770db15f03b29"
+restock = "1d3d08c1207893d1"
+
+[environments.default.workers.shop-orders.expects."shop.payments"]
+authorise = "febd15c2757b72e1"
+
 [environments.default.workers.shop-payments]
 deployed = true
 
 [environments.default.workers.shop-payments.contracts]
 authorise = "febd15c2757b72e1"
+
+[environments.default.workers.shop-payments.expects]
