@@ -1,15 +1,5 @@
 Running tests...
 
-integration · shop.orders:
-order for 7500 cents
-  ✓ an order is placed across three Workers
-
-integration · shop.payments:
-processor unavailable for o1
-  ✓ with no processor configured, a charge fails closed over the wire
-  ✓ with the fake processor, a charge is approved over the wire
-  ✓ an unsigned or forged notice is refused at the boundary
-
 shop.inventory:
   ✓ restocking adds to what is available
   ✓ a reservation holds stock for its order, once
@@ -49,5 +39,15 @@ shop.payments:
   ✓ a notice delivered twice is applied once
   ✓ a notice that does not follow from the status is refused
   ✓ a notice for a payment the shop never recorded is refused
+
+system · shop.orders:
+order for 7500 cents
+  ✓ an order is placed across three Workers
+
+system · shop.payments:
+processor unavailable for o1
+  ✓ with no processor configured, a charge fails closed over the wire
+  ✓ with the fake processor, a charge is approved over the wire
+  ✓ an unsigned or forged notice is refused at the boundary
 
 36 passed, 0 failed.

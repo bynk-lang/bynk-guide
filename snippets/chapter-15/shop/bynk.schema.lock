@@ -1,4 +1,4 @@
-version = 1
+version = 2
 
 [events."shop.orders.OrderCancelled"]
 schema = 1
@@ -50,3 +50,127 @@ default = false
 name = "sku"
 type = "Sku"
 default = false
+
+[agents."shop.inventory.Catalogue"]
+version = 1
+floor = 1
+
+[[agents."shop.inventory.Catalogue".shapes]]
+version = 1
+additive = false
+
+[[agents."shop.inventory.Catalogue".shapes.fields]]
+name = "skus"
+kind = "Map"
+type = "String, String"
+refinement = "String, String where MinLength(1)"
+
+[agents."shop.inventory.Inventory"]
+version = 1
+floor = 1
+
+[[agents."shop.inventory.Inventory".shapes]]
+version = 1
+additive = false
+
+[[agents."shop.inventory.Inventory".shapes.fields]]
+name = "available"
+kind = "Cell"
+type = "Int"
+refinement = "Int"
+
+[[agents."shop.inventory.Inventory".shapes.fields]]
+name = "holds"
+kind = "Map"
+type = "String, {at: Instant, order: String, qty: Int}"
+refinement = "String, {at: Instant, order: String where MinLength(1), qty: Int}"
+
+[[agents."shop.inventory.Inventory".shapes.fields]]
+name = "received"
+kind = "Log"
+type = "String"
+refinement = "String"
+
+[agents."shop.ledger.Books"]
+version = 1
+floor = 1
+
+[[agents."shop.ledger.Books".shapes]]
+version = 1
+additive = false
+
+[[agents."shop.ledger.Books".shapes.fields]]
+name = "cents"
+kind = "Cell"
+type = "Int"
+refinement = "Int"
+
+[[agents."shop.ledger.Books".shapes.fields]]
+name = "orders"
+kind = "Cell"
+type = "Int"
+refinement = "Int"
+
+[[agents."shop.ledger.Books".shapes.fields]]
+name = "units"
+kind = "Cell"
+type = "Int"
+refinement = "Int"
+
+[agents."shop.orders.Order"]
+version = 1
+floor = 1
+
+[[agents."shop.orders.Order".shapes]]
+version = 1
+additive = false
+
+[[agents."shop.orders.Order".shapes.fields]]
+name = "line"
+kind = "Cell"
+type = "Option[{cents: Int, qty: Int, sku: String}]"
+refinement = "Option[{cents: Int where InRange(1, 10000000), qty: Int where InRange(1, 1000), sku: String where MinLength(1)}]"
+
+[[agents."shop.orders.Order".shapes.fields]]
+name = "owner"
+kind = "Cell"
+type = "String"
+refinement = "String"
+
+[[agents."shop.orders.Order".shapes.fields]]
+name = "status"
+kind = "Cell"
+type = "|Cancelled|Opened|Pending|Placed|Rejected"
+refinement = "|Cancelled|Opened|Pending|Placed|Rejected"
+
+[agents."shop.payments.Payment"]
+version = 1
+floor = 1
+
+[[agents."shop.payments.Payment".shapes]]
+version = 1
+additive = false
+
+[[agents."shop.payments.Payment".shapes.fields]]
+name = "cents"
+kind = "Cell"
+type = "Int"
+refinement = "Int"
+
+[[agents."shop.payments.Payment".shapes.fields]]
+name = "notices"
+kind = "Log"
+type = "{event: String, id: String}"
+refinement = "{event: String, id: String}"
+
+[[agents."shop.payments.Payment".shapes.fields]]
+name = "order"
+kind = "Cell"
+type = "String"
+refinement = "String"
+
+[[agents."shop.payments.Payment".shapes.fields]]
+name = "status"
+kind = "Cell"
+type = "|Authorised|Captured|Failed|Refunded|Unknown"
+refinement = "|Authorised|Captured|Failed|Refunded|Unknown"

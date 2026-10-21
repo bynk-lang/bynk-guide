@@ -6,28 +6,13 @@
 
 = Appendix: Issues cited <issues-cited>
 
-Where Bynk #book-meta.bynk-version doesn't yet do what a chapter needs, the
-chapter says so where it matters, with the issue in `bynk-lang/bynk` that
-tracks it. This is the whole list, as it stood on 19 October 2026.
+Where Bynk doesn't yet do what a chapter needs, the chapter says so where it
+matters, with the issue in `bynk-lang/bynk` that tracks it. At
+#book-meta.bynk-version, on 21 October 2026, no chapter cites one.
 
 The first draft of this book was checked against Bynk 0.330.4, and cited
 thirty issues, most of them found while writing it. Every one was fixed by
-#book-meta.bynk-version, and the chapters' workarounds went with them.
-
-#block(width: 100%, breakable: true)[
-  #set text(size: 8.4pt, hyphenate: false)
-  #set par(justify: false, leading: 0.55em, first-line-indent: 0pt)
-  #table(
-    columns: (0.42fr, 2.6fr, 0.55fr, 0.5fr),
-    align: (right, left, left, left),
-    inset: (x: 0.5em, y: 0.42em),
-    stroke: (x, y) => if y == 0 { (bottom: 0.8pt + rgb("#4b44d6")) } else { none },
-    table.header(
-      text(weight: "semibold")[\#],
-      text(weight: "semibold")[At #book-meta.bynk-version],
-      text(weight: "semibold")[Ch.],
-      text(weight: "semibold")[State],
-    ),
-    [2185], [`bynkc test` heads a `system` suite's results `integration`], [11], [open],
-  )
-]
+0.371.3, and the chapters' workarounds went with them. The one issue cited at
+that release, that `bynkc test` headed a `system` suite's results
+`integration` (#2185), is fixed in #book-meta.bynk-version. If a later pin
+needs a workaround, it is listed here, one row to an issue.

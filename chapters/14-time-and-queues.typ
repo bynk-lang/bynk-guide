@@ -82,7 +82,7 @@ sold twice. So orders now commits the hold once the payment is taken:
 
 #code-listing(
   [In orders, after the payment],
-  source-lines(orders, 229, 244),
+  source-lines(orders, 239, 254),
   lang: "bynk",
 )
 

@@ -71,7 +71,7 @@ is what compiling writes.
 Chapters that print a chapter-to-chapter diff generate it with
 `./scripts/make-book-diffs.sh`.
 
-The book pins **Bynk 0.371.3** (`BYNK_VERSION` in
+The book pins **Bynk 0.377.2** (`BYNK_VERSION` in
 `.github/workflows/snippets.yml`, and `bynk-version` in `metadata.typ`; CI fails
 if they differ). It is enrolled in the org
 [canary](https://github.com/bynk-lang/.github/blob/main/canary/README.md) as a

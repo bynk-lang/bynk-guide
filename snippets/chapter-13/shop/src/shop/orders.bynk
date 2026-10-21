@@ -113,11 +113,21 @@ agent Order {
 	}
 
 	on call confirm() -> Effect[()] {
-		status := Placed
+		match status {
+			Opened => {
+				status := Placed
+			},
+			_ => (),
+		}
 	}
 
 	on call reject() -> Effect[()] {
-		status := Rejected
+		match status {
+			Opened => {
+				status := Rejected
+			},
+			_ => (),
+		}
 	}
 
 	on call cancel() -> Effect[Result[(), OrderError]] {
