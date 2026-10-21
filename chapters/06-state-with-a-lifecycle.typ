@@ -78,7 +78,7 @@ The agent, with its states and its rules:
 
 #code-listing(
   [The order, with a lifecycle],
-  source-lines(orders, 40, 89),
+  source-lines(orders, 40, 99),
   lang: "bynk",
 )
 
@@ -91,10 +91,12 @@ any state they shouldn't move from. Both end in a `_` arm, so a sixth state
 added later would fall into the error. Name every state instead when you want
 the compiler to make you decide.
 
-`confirm` and `reject` don't guard at all. The `PUT` handler calls exactly one
-of them, once, straight after `open`, so there is nothing for them to check.
-That is the kind of reasoning that holds until it doesn't, which is what the
-two `transition` declarations are for.
+`confirm` and `reject` guard their moves too, but quietly: each moves an
+`Opened` order and leaves any other as it is. The `PUT` handler calls exactly
+one of them, once, straight after `open`, so no caller needs to hear that a
+move didn't happen, and they return `()` rather than an error. The guard is
+there because the compiler asks for it, which is what the two `transition`
+declarations are for.
 
 == Transitions <ix-guide-06-transitions>
 
@@ -106,12 +108,20 @@ makes after its first.#footnote[
 ] `rejected_is_final` says that an order that was rejected is still rejected
 afterwards; `cancelled_is_final` says the same for a cancelled one.
 
-They are checked by the runtime, at the commit, and not by the type checker.
-Bynk doesn't decide which assignments to `status` are legal: any `Status` can
-be assigned to it. What it does is refuse to persist a commit that breaks a
-`transition`. If some future handler, or some future caller of `confirm`, tried
-to move a rejected order on, the handler would fault: nothing it wrote would be
-stored, and the request would end in a `500`.
+They are enforced by the runtime, at the commit. Bynk doesn't decide which
+assignments to `status` are legal: any `Status` can be assigned to it. What it
+does is refuse to persist a commit that breaks a `transition`: the handler
+would fault, nothing it wrote would be stored, and the request would end in a
+`500`.
+
+The compiler reads the handlers as well, and warns about a move a `transition`
+would refuse. Write `confirm` as a bare `status := Placed` and it says that
+`confirm()` can move `status` from `Rejected` to `Placed`, which
+`rejected_is_final` refuses at commit (`bynk.transition.may_violate`). The
+`match` is the answer: guarded to `Opened`, `confirm` can only move an opened
+order, and the warning goes. A warning isn't a proof for every caller, though.
+If some future handler, or some future caller of `confirm`, still moved a
+rejected order on, the commit-time check would be the one to catch it.
 
 That is a deliberate choice of failure. A broken transition isn't a business
 outcome a caller should handle, like `NotPlaced`. It is a bug, and it stops
@@ -125,7 +135,7 @@ Placing an order now decides it either way:
 
 #code-listing(
   [Deciding the order],
-  source-lines(orders, 216, 233),
+  source-lines(orders, 226, 243),
   lang: "bynk",
 )
 
@@ -135,7 +145,7 @@ And a placed order can be cancelled, which gives its stock back:
 
 #code-listing(
   [Cancelling an order],
-  source-lines(orders, 249, 276),
+  source-lines(orders, 259, 286),
   lang: "bynk",
 )
 
@@ -285,8 +295,8 @@ bounded histories, and a bug that needs a long, particular run can hide from
 it.
 
 And the stored status is now part of the order's schema. Renaming a state, or
-adding one in the middle, changes what every stored order means, which is
-chapter 15's subject.
+adding one, changes what every stored order means, and the schema lock refuses
+it: chapter 15's subject.
 
 == Where this leaves the order <ix-guide-06-where-this-leaves-the-order>
 

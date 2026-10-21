@@ -115,9 +115,9 @@ between contexts weren't signed, and a good deal of it couldn't be tested
 above the `unit` tier. Each was filed while the book was written, and each
 was fixed by the release this one uses.
 
-What remains is named where it bites, with its issue number, so you can check
-whether it still applies to the release you are using. The appendix lists
-them.
+Nothing is left to name. No chapter works around an open Bynk issue at this
+release. If a later pin needs a workaround, the chapter will say so where it
+bites, with its issue number, and the appendix will list it.
 
 If you find one this book missed, the place to say so is the issue tracker at
 `bynk-lang/bynk`. Most of the issues this book cites were found by writing it.

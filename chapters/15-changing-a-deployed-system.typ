@@ -59,24 +59,46 @@ field, but not the value.#footnote[
   The Bynk Book's agents reference, “Rehydration validation”.
 ]
 
-That gives three rules:
+The lock file helps before it comes to that. `bynk.schema.lock`, beside
+`bynk.toml`, records the shape of each agent's stored state as well as each
+event's: every `Cell`, `Map` and `Log` with its type and refinement. `bynkc check`, `bynkc test`, the editor and every build compare the code
+with the committed lock, and a stored record is stamped with the schema version it was
+written under, so a record the code can't read faults at load instead of being
+guessed at. That gives three rules:
 
 - *Adding a store field is safe.* An agent loaded with state from before the
-  field existed gets the field's initial value. Nothing needs migrating.
-- *Removing a store field is safe.* The stored value is carried along
-  unchanged, not dropped, so no data is lost.
-- *Tightening a type is not.* If the shop narrowed `Quantity` from
-  `InRange(1, 1000)` to `InRange(1, 100)`, every `Order` and every `Hold`
-  that stored a larger quantity would fault the next time it loaded. Bynk
-  doesn't coerce the value or drop it, because stored data that no longer
-  fits looks exactly like corrupted data.
+  field existed gets the field's initial value. Nothing needs migrating, and
+  the next build records the new field in the lock.
+- *Removing or retyping a store field is refused.* Adding a state to the
+  `Status` enum counts as retyping `status`, so the order's lifecycle is under
+  the same rule.
+- *Tightening a type is a warning.* If the shop narrowed `Quantity` from
+  `InRange(1, 1000)` to `InRange(1, 100)`, the check warns that the refinement
+  on `Order.line`'s stored type changed (`bynk.agent.refinement_changed`).
+  Every `Order` and every `Hold` that stored a larger quantity would fault the
+  next time it loaded. Bynk doesn't coerce the value or drop it, because stored
+  data that no longer fits looks exactly like corrupted data. It is a warning
+  because widening a refinement is safe, and the check can't always tell which
+  way you went.
 
-There is no migration step in the language. A change that would break stored
-data is made in two moves, by convention: add a new field of the new type,
-write it from the handlers that change the state, and read the old one only
-when the new one isn't there yet. Remove the old field once nothing stored
-depends on it. That is the hand-written migration above, done lazily, one
-field at a time.
+#lead-in[
+Delete `units` from the ledger and the check refuses:
+]
+
+#compiler-message[
+[bynk.agent.non_additive_state_change] Error: agent `Books`'s stored state
+changed in a way deployed data cannot be read through — field(s) removed:
+units
+]
+
+There is no migration step in the language yet; the release notes say a
+declared one is coming. Until then a change that would break stored data is
+made in two moves, by convention: add a new field of the new type, write it
+from the handlers that change the state, and read the old one only when the
+new one isn't there yet. That is the hand-written migration above, done lazily,
+one field at a time. The old field stays, in the code and in the lock, which
+refuses its removal. An agent that was never deployed has nothing to protect:
+delete its entry from the lock to record the new shape as a fresh baseline.
 
 Agents themselves need care too. Chapter 12 showed that `bynk deploy`
 declares each agent's Durable Object class and lets Cloudflare create what is
@@ -100,8 +122,8 @@ The ledger would like to know who placed each order. Orders adds a field to
 The middle hunk is the bug fix, which the next section is about.
 
 #lead-in[
-Every build reconciles each event's shape with `bynk.schema.lock`, beside
-`bynk.toml`, and this build changes it:
+Every build reconciles each event's shape with the same `bynk.schema.lock`,
+and this build changes it:
 ]
 
 #code-listing(
@@ -214,10 +236,10 @@ change much better than it _manages_ it.
 - *Two contract versions at once.* A contract change is a coordinated deploy
   of every context it touches. There is no way to serve the old contract and
   the new one together while callers move over.
-- *Migrating agent state.* Additive changes are automatic and breaking ones
-  are refused at load. In between, there is a convention and no language
-  support: no migration step, no version on stored state, no way to run a
-  migration across every instance.
+- *Migrating agent state.* Additive changes are automatic, and breaking ones
+  are refused at build by the lock and at load by the runtime. What is missing
+  is the migration itself: no migration step in the language yet, and no way to
+  run one across every instance.
 - *Events after the fact.* There is no replay. A ledger added to a running
   shop starts from the next event, and one that missed events can't catch
   up. Replay is designed and scheduled before 1.0 but not built, and so are

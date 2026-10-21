@@ -17,7 +17,7 @@ Each chapter shows what you would write by hand in TypeScript, builds the same
 thing in Bynk, and ends with *What it costs*. The reader, the scope and the
 principles are in [`notes/brief.md`](notes/brief.md).
 
-The book is pinned to **Bynk 0.371.3** and describes exactly that release.
+The book is pinned to **Bynk 0.377.2** and describes exactly that release.
 
 ## Getting the PDF
 
@@ -34,7 +34,7 @@ Or build it yourself (the script fetches the pinned Typst if needed):
 ```
 
 You don't need Bynk installed to read or review. You do if you want to run the
-examples: see chapter 1, *Installing the toolchain*, and install 0.371.3
+examples: see chapter 1, *Installing the toolchain*, and install 0.377.2
 exactly.
 
 ## What feedback helps most
@@ -82,7 +82,8 @@ Two things are **not** re-checked on every build:
   scratch account on 17 October 2026, with Bynk 0.330.4. What changed by
   0.371.3 (a new Worker's secrets, the staging plan, signed internal calls,
   the logged stack) is described from Bynk's changelog and hasn't been
-  re-checked live.
+  re-checked live. 0.377.2 changes nothing in the deploy path that its
+  changelog lists.
 - **The states in the issues appendix.** They are a dated snapshot. The list of
   issues itself is checked against the chapters.
 
