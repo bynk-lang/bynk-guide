@@ -1,6 +1,6 @@
 --- a/src/shop/orders.bynk
 +++ b/src/shop/orders.bynk
-@@ -60,7 +101,8 @@
+@@ -60,7 +111,8 @@
  ---
  The stock of one product. `available` is what can still be sold; a
  reservation moves units out of it into `holds`, keyed by order id, so
@@ -10,7 +10,7 @@
  ---
  agent Inventory {
  	key sku: Sku
-@@ -68,6 +110,9 @@
+@@ -68,6 +120,9 @@
  	store available: Cell[Int]
  	store holds: Map[String, Hold]
  
@@ -20,7 +20,7 @@
  	on call restock(qty: Quantity) -> Effect[Int] {
  		let _ <- available.update((v) => v + qty)
  		available
-@@ -94,6 +139,18 @@
+@@ -94,6 +149,18 @@
  		}
  	}
  

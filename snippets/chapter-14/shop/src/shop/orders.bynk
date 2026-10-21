@@ -113,11 +113,21 @@ agent Order {
 	}
 
 	on call confirm() -> Effect[()] {
-		status := Placed
+		match status {
+			Opened => {
+				status := Placed
+			},
+			_ => (),
+		}
 	}
 
 	on call reject() -> Effect[()] {
-		status := Rejected
+		match status {
+			Opened => {
+				status := Rejected
+			},
+			_ => (),
+		}
 	}
 
 	on call cancel() -> Effect[Result[(), OrderError]] {
@@ -227,10 +237,10 @@ service api from http {
 										}
 									},
 									Ok(_) => {
-										-- `Err`: the sweeper released the hold while the
-										-- payment was taken, so the stock may be someone
-										-- else's by now. The authorisation should be
-										-- voided too; the gateway has no void yet.
+										// `Err`: the sweeper released the hold while the
+										// payment was taken, so the stock may be someone
+										// else's by now. The authorisation should be
+										// voided too; the gateway has no void yet.
 										let sold <- Stock.commit(
 											body.sku,
 											id
