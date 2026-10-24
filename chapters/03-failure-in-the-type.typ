@@ -60,7 +60,7 @@ Start with the reasons an order can be refused. In `orders.bynk`, after
 
 #code-listing(
   [Why an order is refused],
-  source-lines(orders, 10, 16),
+  source-lines(orders, 14, 21),
   lang: "bynk",
 )
 
@@ -77,7 +77,7 @@ Now the rule itself:
 
 #code-listing(
   [The rule, as a function that can fail],
-  source-lines(orders, 17, 24),
+  source-lines(orders, 22, 29),
   lang: "bynk",
 )
 
@@ -136,7 +136,7 @@ The handler calls `total` and decides what each outcome means over HTTP:
 
 #code-listing(
   [Mapping the outcome to a status],
-  source-lines(orders, 25, 41),
+  source-lines(orders, 30, 46),
   lang: "bynk",
 )
 
@@ -245,7 +245,7 @@ keeps chapter 2's decoding cases and adds two for `total`:
 
 #code-listing(
   [The orders suite],
-  source-lines("../snippets/chapter-03/shop/tests/shop/orders.bynk", 11, 24),
+  source-lines("../snippets/chapter-03/shop/tests/shop/orders.bynk", 12, 29),
   lang: "bynk",
 )
 

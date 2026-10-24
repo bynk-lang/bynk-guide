@@ -6,7 +6,9 @@ consumes bynk.cloudflare { Kv }
 ---
 One thing that happened to a page.
 ---
-type Visit = { path: String }
+type Visit = {
+	path: String,
+}
 
 ---
 A page's recent history and a short-lived cache of what it rendered.

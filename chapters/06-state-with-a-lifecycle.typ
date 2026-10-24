@@ -58,7 +58,7 @@ back:
 
 #code-listing(
   [The states of an order],
-  source-lines(orders, 28, 39),
+  source-lines(orders, 33, 47),
   lang: "bynk",
 )
 
@@ -78,7 +78,7 @@ The agent, with its states and its rules:
 
 #code-listing(
   [The order, with a lifecycle],
-  source-lines(orders, 40, 99),
+  source-lines(orders, 48, 110),
   lang: "bynk",
 )
 
@@ -135,7 +135,7 @@ Placing an order now decides it either way:
 
 #code-listing(
   [Deciding the order],
-  source-lines(orders, 226, 243),
+  source-lines(orders, 244, 261),
   lang: "bynk",
 )
 
@@ -145,7 +145,7 @@ And a placed order can be cancelled, which gives its stock back:
 
 #code-listing(
   [Cancelling an order],
-  source-lines(orders, 259, 286),
+  source-lines(orders, 277, 304),
   lang: "bynk",
 )
 
@@ -218,7 +218,7 @@ Three new cases test single moves, and one property tests whole lives:
 
 #code-listing(
   [Testing the lifecycle],
-  source-lines(tests, 71, 111),
+  source-lines(tests, 80, 128),
   lang: "bynk",
 )
 

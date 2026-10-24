@@ -203,7 +203,7 @@ Sometimes the owner knows more than the caller. The rest of
 
 #code-listing(
   [Constructors the commons can vouch for],
-  source-lines("../snippets/chapter-02/shop/src/shop/values.bynk", 23, 39),
+  source-lines("../snippets/chapter-02/shop/src/shop/values.bynk", 23, 43),
   lang: "bynk",
 )
 

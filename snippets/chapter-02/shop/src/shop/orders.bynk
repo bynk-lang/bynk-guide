@@ -5,11 +5,17 @@ uses shop.values
 ---
 What the customer is buying: one sku, how many, and the agreed price.
 ---
-type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+type OrderLine = {
+	sku: Sku,
+	qty: Quantity,
+	cents: Cents,
+}
 
 service api from http {
 	on PUT("/orders/:id") (
 		id: OrderId,
 		body: OrderLine
-	) -> Effect[HttpResult[OrderLine]] by Visitor { Created(body) }
+	) -> Effect[HttpResult[OrderLine]] by Visitor {
+		Created(body)
+	}
 }

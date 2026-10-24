@@ -51,7 +51,7 @@ To find an abandoned hold, the inventory needs to know how old each one is:
 
 #code-listing(
   [Holds, and how long one may stand],
-  source-lines(inventory, 17, 33),
+  source-lines(inventory, 17, 42),
   lang: "bynk",
 )
 
@@ -61,7 +61,7 @@ To find an abandoned hold, the inventory needs to know how old each one is:
 
 #code-listing(
   [Reserving, with the time],
-  source-lines(inventory, 57, 79),
+  source-lines(inventory, 66, 88),
   lang: "bynk",
 )
 
@@ -71,7 +71,7 @@ which is new, turns it into a sale:
 
 #code-listing(
   [Committing a hold],
-  source-lines(inventory, 99, 109),
+  source-lines(inventory, 108, 118),
   lang: "bynk",
 )
 
@@ -82,7 +82,7 @@ sold twice. So orders now commits the hold once the payment is taken:
 
 #code-listing(
   [In orders, after the payment],
-  source-lines(orders, 239, 254),
+  source-lines(orders, 255, 270),
   lang: "bynk",
 )
 
@@ -105,13 +105,13 @@ list:
 
 #code-listing(
   [The catalogue],
-  source-lines(inventory, 146, 161),
+  source-lines(inventory, 157, 174),
   lang: "bynk",
 )
 
 #code-listing(
   [Restocking records the sku],
-  source-lines(inventory, 166, 172),
+  source-lines(inventory, 179, 185),
   lang: "bynk",
 )
 
@@ -125,7 +125,7 @@ itself as the value.
 
 #code-listing(
   [Releasing what is stale],
-  source-lines(inventory, 121, 138),
+  source-lines(inventory, 130, 147),
   lang: "bynk",
 )
 
@@ -137,7 +137,7 @@ And the sweeper itself:
 
 #code-listing(
   [The sweeper],
-  source-lines(inventory, 202, 223),
+  source-lines(inventory, 217, 238),
   lang: "bynk",
 )
 
@@ -251,7 +251,7 @@ The inventory consumes that queue:
 
 #code-listing(
   [Deliveries, from the warehouse],
-  source-lines(inventory, 224, 241),
+  source-lines(inventory, 239, 260),
   lang: "bynk",
 )
 
@@ -269,7 +269,7 @@ stocking a delivery has to be safe to repeat:
 
 #code-listing(
   [Receiving a delivery once],
-  source-lines(inventory, 80, 98),
+  source-lines(inventory, 89, 107),
   lang: "bynk",
 )
 

@@ -91,7 +91,7 @@ services the context offers:
 
 #code-listing(
   [What inventory offers other contexts],
-  source-lines(inventory, 75, 106),
+  source-lines(inventory, 80, 111),
   lang: "bynk",
 )
 
@@ -298,7 +298,7 @@ Caller(…)`:
 
 #code-listing(
   [Calling a service as orders would],
-  source-lines("../snippets/chapter-08/shop/tests/shop/inventory.bynk", 41, 53),
+  source-lines("../snippets/chapter-08/shop/tests/shop/inventory.bynk", 42, 54),
   lang: "bynk",
 )
 

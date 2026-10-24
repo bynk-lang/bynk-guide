@@ -18,19 +18,28 @@ type HoldError = enum { NoHold }
 ---
 Stock set aside for one order while its payment is taken, and when.
 ---
-type Hold = { order: OrderId, qty: Int, at: Instant }
+type Hold = {
+	order: OrderId,
+	qty: Int,
+	at: Instant,
+}
 
 ---
 A hold the sweeper has found too old.
 ---
-type Stale = { order: OrderId, qty: Int }
+type Stale = {
+	order: OrderId,
+	qty: Int,
+}
 
 ---
 How long a hold may stand. Placing an order takes a second or two, so a
 hold this old belongs to a request that died between `reserve` and
 `commit` or `release`.
 ---
-fn holdFor() -> Duration { 15.minutes }
+fn holdFor() -> Duration {
+	15.minutes
+}
 
 ---
 The stock of one product. `available` is what can still be sold; a
@@ -137,7 +146,9 @@ agent Inventory {
 		units
 	}
 
-	on call level() -> Effect[Int] { available }
+	on call level() -> Effect[Int] {
+		available
+	}
 
 	on call held() -> Effect[Int] {
 		holds.values.fold(0, (n, h) => n + h.qty)
@@ -157,7 +168,9 @@ agent Catalogue {
 		let _ <- skus.put(skuRef(sku), sku)
 	}
 
-	on call all() -> Effect[List[Sku]] { skus.values.collect() }
+	on call all() -> Effect[List[Sku]] {
+		skus.values.collect()
+	}
 }
 
 ---
@@ -197,7 +210,9 @@ service release {
 }
 
 service level {
-	on call(sku: Sku) -> Effect[Int] by c: Caller { Inventory(sku).level() }
+	on call(sku: Sku) -> Effect[Int] by c: Caller {
+		Inventory(sku).level()
+	}
 }
 
 ---
@@ -225,7 +240,11 @@ service sweeper from cron {
 ---
 A delivery from the warehouse: its own id, and so many units of one sku.
 ---
-type Delivery = { id: String, sku: Sku, qty: Quantity }
+type Delivery = {
+	id: String,
+	sku: Sku,
+	qty: Quantity,
+}
 
 ---
 The warehouse's system announces each delivery on a Cloudflare Queue. The

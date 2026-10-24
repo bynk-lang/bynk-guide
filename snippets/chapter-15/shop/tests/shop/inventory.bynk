@@ -1,4 +1,5 @@
 suite shop.inventory
+
 case "restocking adds to what is available" {
 	let sku = skuFrom("w1")
 	let stocked <- Inventory(sku).restock(10)
@@ -128,7 +129,11 @@ case "the sweeper leaves a fresh hold, and a sold one, alone" {
 // The warehouse's deliveries, from the queue.
 
 case "a delivery is stocked, and the sweeper can find it" {
-	let d = Delivery { id: "d1", sku: skuFrom("w13"), qty: 6 }
+	let d = Delivery {
+		id: "d1",
+		sku: skuFrom("w13"),
+		qty: 6,
+	}
 	let r <- deliveries.message(d)
 	expect r is Ack
 	let left <- Inventory(skuFrom("w13")).level()
@@ -138,7 +143,11 @@ case "a delivery is stocked, and the sweeper can find it" {
 }
 
 case "a delivery that arrives twice is stocked once" {
-	let d = Delivery { id: "d2", sku: skuFrom("w14"), qty: 6 }
+	let d = Delivery {
+		id: "d2",
+		sku: skuFrom("w14"),
+		qty: 6,
+	}
 	let _ <- deliveries.message(d)
 	let _ <- deliveries.message(d)
 	let left <- Inventory(skuFrom("w14")).level()

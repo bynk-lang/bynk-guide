@@ -100,7 +100,7 @@ Its state is one agent, the books:
 
 #code-listing(
   [The books],
-  source-lines(ledger, 26, 54),
+  source-lines(ledger, 30, 62),
   lang: "bynk",
 )
 
@@ -110,7 +110,7 @@ And a subscriber for each event:
 
 #code-listing(
   [Counting a placed order],
-  source-lines(ledger, 55, 75),
+  source-lines(ledger, 63, 83),
   lang: "bynk",
 )
 

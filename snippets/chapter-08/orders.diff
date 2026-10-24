@@ -9,7 +9,7 @@
  consumes bynk { Logger }
  
  ---
-@@ -264,26 +196,40 @@
+@@ -285,26 +212,40 @@
  						"that order has already been placed"
  					),
  					Ok(_) => {

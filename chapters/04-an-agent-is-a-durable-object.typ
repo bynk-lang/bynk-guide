@@ -67,7 +67,7 @@ In Bynk the order is an `agent`. Add it to `orders.bynk`, after `total`:
 
 #code-listing(
   [The order, as an agent],
-  source-lines(orders, 27, 48),
+  source-lines(orders, 32, 55),
   lang: "bynk",
 )
 
@@ -117,7 +117,7 @@ The `PUT` handler opens the order once the total has passed:
 
 #code-listing(
   [Placing an order, once],
-  source-lines(orders, 50, 72),
+  source-lines(orders, 57, 79),
   lang: "bynk",
 )
 
@@ -131,7 +131,7 @@ And a route to look an order up:
 
 #code-listing(
   [Looking an order up],
-  source-lines(orders, 73, 82),
+  source-lines(orders, 80, 89),
   lang: "bynk",
 )
 
@@ -228,7 +228,7 @@ A test can call an agent directly, by key. Two new cases:
 
 #code-listing(
   [Testing the order],
-  source-lines("../snippets/chapter-04/shop/tests/shop/orders.bynk", 25, 40),
+  source-lines("../snippets/chapter-04/shop/tests/shop/orders.bynk", 30, 49),
   lang: "bynk",
 )
 

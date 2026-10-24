@@ -31,9 +31,13 @@ A sku from text already known to be non-empty, so no `Result` is
 needed. Only this commons may call `.unsafe`, and `Label` has already
 established the predicate.
 ---
-fn skuFrom(text: Label) -> Sku { Sku.unsafe(text) }
+fn skuFrom(text: Label) -> Sku {
+	Sku.unsafe(text)
+}
 
 ---
 An order id from non-empty text, as `skuFrom`.
 ---
-fn orderIdFrom(text: Label) -> OrderId { OrderId.unsafe(text) }
+fn orderIdFrom(text: Label) -> OrderId {
+	OrderId.unsafe(text)
+}

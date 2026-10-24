@@ -1,4 +1,5 @@
 suite shop.inventory
+
 case "restocking adds to what is available" {
 	let sku = skuFrom("w1")
 	let stocked <- Inventory(sku).restock(10)
