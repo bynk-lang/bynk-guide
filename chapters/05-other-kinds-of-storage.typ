@@ -62,7 +62,7 @@ Start with the types. In `orders.bynk`:
 
 #code-listing(
   [Why stock is refused, and a hold],
-  source-lines(orders, 49, 58),
+  source-lines(orders, 56, 68),
   lang: "bynk",
 )
 
@@ -76,7 +76,7 @@ Then the agent:
 
 #code-listing(
   [The stock of one product],
-  source-lines(orders, 59, 102),
+  source-lines(orders, 69, 114),
   lang: "bynk",
 )
 
@@ -114,7 +114,7 @@ is a workaround, and `shop.values` gains a function for it:
 
 #code-listing(
   [The order id as text],
-  source-lines("../snippets/chapter-05/shop/src/shop/values.bynk", 40, 46),
+  source-lines("../snippets/chapter-05/shop/src/shop/values.bynk", 44, 52),
   lang: "bynk",
 )
 
@@ -169,7 +169,7 @@ The `PUT` handler now reserves stock once the order is open:
 
 #code-listing(
   [Opening, then reserving],
-  source-lines(orders, 120, 133),
+  source-lines(orders, 134, 147),
   lang: "bynk",
 )
 
@@ -257,7 +257,7 @@ Three cases for `Inventory`, beside the earlier ones:
 
 #code-listing(
   [Testing the stock],
-  source-lines("../snippets/chapter-05/shop/tests/shop/orders.bynk", 41, 69),
+  source-lines("../snippets/chapter-05/shop/tests/shop/orders.bynk", 50, 78),
   lang: "bynk",
 )
 

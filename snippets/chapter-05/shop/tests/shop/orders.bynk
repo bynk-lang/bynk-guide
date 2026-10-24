@@ -1,4 +1,5 @@
 suite shop.orders
+
 case "a line that fits its types is admitted" {
 	let raw = "{\"sku\":\"widget\",\"qty\":3,\"cents\":2500}"
 	expect Json.decode[OrderLine](raw) is Ok(_)
@@ -10,7 +11,11 @@ case "a zero quantity is refused" {
 }
 
 case "an order's total is quantity times price" {
-	let line = OrderLine { sku: skuFrom("widget"), qty: 3, cents: 2500 }
+	let line = OrderLine {
+		sku: skuFrom("widget"),
+		qty: 3,
+		cents: 2500,
+	}
 	expect total(line) is Ok(_)
 }
 
@@ -30,7 +35,11 @@ case "a fresh order has no line" {
 
 case "an order is opened once" {
 	let id = orderIdFrom("o2")
-	let line = OrderLine { sku: skuFrom("widget"), qty: 3, cents: 2500 }
+	let line = OrderLine {
+		sku: skuFrom("widget"),
+		qty: 3,
+		cents: 2500,
+	}
 	let first <- Order(id).open(line)
 	expect first is Ok(_)
 	let again <- Order(id).open(line)

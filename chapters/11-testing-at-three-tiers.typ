@@ -106,7 +106,7 @@ Promote a case by adding one word to its header:
 
 #code-listing(
   [An `integration` case],
-  source-lines("../snippets/chapter-11/shop/tests/shop/inventory.bynk", 54, 63),
+  source-lines("../snippets/chapter-11/shop/tests/shop/inventory.bynk", 55, 64),
   lang: "bynk",
 )
 

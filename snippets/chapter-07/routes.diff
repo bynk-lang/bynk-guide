@@ -1,6 +1,6 @@
 --- a/src/shop/orders.bynk
 +++ b/src/shop/orders.bynk
-@@ -249,9 +294,9 @@
+@@ -267,9 +315,9 @@
  
  	on GET("/orders/:id") (
  		id: OrderId
@@ -12,7 +12,7 @@
  			None => NotFound,
  			Some(v) => Ok(v),
  		}
-@@ -259,9 +304,9 @@
+@@ -277,9 +325,9 @@
  
  	on POST("/orders/:id/cancel") (
  		id: OrderId
@@ -24,7 +24,7 @@
  			None => NotFound,
  			Some(v) => {
  				let r <- Order(id).cancel()
-@@ -287,15 +333,18 @@
+@@ -305,15 +354,18 @@
  	on PUT("/stock/:sku") (
  		sku: Sku,
  		body: StockRequest

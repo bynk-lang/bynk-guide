@@ -8,7 +8,7 @@
  }
  
  event OrderCancelled = {
-@@ -222,7 +223,7 @@
+@@ -238,7 +239,7 @@
  								Conflict("out of stock")
  							},
  							Ok(_) => {
@@ -17,7 +17,7 @@
  								match paid {
  									Err(why) => {
  										let _ <- Stock.release(body.sku, id)
-@@ -260,6 +261,7 @@
+@@ -276,6 +277,7 @@
  														sku: body.sku,
  														qty: body.qty,
  														cents: body.cents,

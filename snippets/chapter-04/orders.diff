@@ -1,6 +1,6 @@
 --- a/src/shop/orders.bynk
 +++ b/src/shop/orders.bynk
-@@ -10,9 +10,11 @@
+@@ -14,10 +14,12 @@
  
  ---
  Why an order was refused. `TooLarge` carries the reason the total was
@@ -8,12 +8,13 @@
 +not a price the shop can charge; `AlreadyDecided` means the id has been
 +used.
  ---
- type OrderError = | TooLarge(reason: ValidationError)
-+| AlreadyDecided
- embeds ValidationError as TooLarge
+ type OrderError =
+ 	| TooLarge(reason: ValidationError)
++	| AlreadyDecided
+ 	embeds ValidationError as TooLarge
  
  ---
-@@ -23,19 +25,59 @@
+@@ -28,19 +30,61 @@
  	Ok(Cents.of(line.qty * line.cents)?)
  }
  
@@ -36,7 +37,9 @@
 +		}
 +	}
 +
-+	on call view() -> Effect[Option[OrderLine]] { line }
++	on call view() -> Effect[Option[OrderLine]] {
++		line
++	}
 +}
 +
  service api from http {

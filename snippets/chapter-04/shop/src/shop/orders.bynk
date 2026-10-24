@@ -6,16 +6,21 @@ consumes bynk { Logger }
 ---
 What the customer is buying: one sku, how many, and the agreed price.
 ---
-type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+type OrderLine = {
+	sku: Sku,
+	qty: Quantity,
+	cents: Cents,
+}
 
 ---
 Why an order was refused. `TooLarge` carries the reason the total was
 not a price the shop can charge; `AlreadyDecided` means the id has been
 used.
 ---
-type OrderError = | TooLarge(reason: ValidationError)
-| AlreadyDecided
-embeds ValidationError as TooLarge
+type OrderError =
+	| TooLarge(reason: ValidationError)
+	| AlreadyDecided
+	embeds ValidationError as TooLarge
 
 ---
 What the order comes to. The total must itself be a `Cents`, so an
@@ -44,7 +49,9 @@ agent Order {
 		}
 	}
 
-	on call view() -> Effect[Option[OrderLine]] { line }
+	on call view() -> Effect[Option[OrderLine]] {
+		line
+	}
 }
 
 service api from http {

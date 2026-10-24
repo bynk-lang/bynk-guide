@@ -92,7 +92,7 @@ order remembers whose it is:
 
 #code-listing(
   [The order records its owner],
-  source-lines(orders, 78, 92),
+  source-lines(orders, 87, 101),
   lang: "bynk",
 )
 
@@ -123,7 +123,7 @@ identity:
 
 #code-listing(
   [Showing an order only to its owner],
-  source-lines(orders, 220, 249),
+  source-lines(orders, 240, 270),
   lang: "bynk",
 )
 
@@ -223,7 +223,7 @@ A test acts as a caller with a `by` clause on the call:
 
 #code-listing(
   [Calling a route as a customer],
-  source-lines("../snippets/chapter-07/shop/tests/shop/orders.bynk", 104, 113),
+  source-lines("../snippets/chapter-07/shop/tests/shop/orders.bynk", 121, 134),
   lang: "bynk",
 )
 

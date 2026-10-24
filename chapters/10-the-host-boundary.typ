@@ -180,7 +180,7 @@ First, what a payment can be, and what a notice is:
 
 #code-listing(
   [A payment's states, and a notice],
-  source-lines(payments, 68, 91),
+  source-lines(payments, 68, 94),
   lang: "bynk",
 )
 
@@ -190,7 +190,7 @@ Then a `Payment` agent, keyed by the processor's authorisation id:
 
 #code-listing(
   [The payment],
-  source-lines(payments, 92, 137),
+  source-lines(payments, 95, 144),
   lang: "bynk",
   breakable: true,
 )
@@ -207,7 +207,7 @@ Which notices may move which status is a pure function:
 
 #code-listing(
   [The processor's events, and where they lead],
-  source-lines(payments, 140, 157),
+  source-lines(payments, 151, 168),
   lang: "bynk",
 )
 
@@ -217,7 +217,7 @@ And `authorise` now records each payment it takes:
 
 #code-listing(
   [Recording an authorisation],
-  source-lines(payments, 168, 188),
+  source-lines(payments, 179, 199),
   lang: "bynk",
 )
 
@@ -230,7 +230,7 @@ a new kind:
 
 #code-listing(
   [A signed webhook],
-  source-lines(payments, 189, 228),
+  source-lines(payments, 200, 243),
   lang: "bynk",
   breakable: true,
 )
@@ -277,7 +277,7 @@ it at its seam:
 
 #code-listing(
   [Stubbing the gateway],
-  source-lines("../snippets/chapter-10/shop/tests/shop/payments.bynk", 35, 64),
+  source-lines("../snippets/chapter-10/shop/tests/shop/payments.bynk", 36, 65),
   lang: "bynk",
 )
 
@@ -287,7 +287,7 @@ And the webhook's replay guard, through the agent:
 
 #code-listing(
   [A notice delivered twice],
-  source-lines("../snippets/chapter-10/shop/tests/shop/payments.bynk", 100, 116),
+  source-lines("../snippets/chapter-10/shop/tests/shop/payments.bynk", 101, 120),
   lang: "bynk",
 )
 

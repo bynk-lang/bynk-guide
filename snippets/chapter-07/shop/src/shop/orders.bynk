@@ -27,17 +27,22 @@ actor Admin = Customer where hasClaim("admin")
 ---
 What the customer is buying: one sku, how many, and the agreed price.
 ---
-type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
+type OrderLine = {
+	sku: Sku,
+	qty: Quantity,
+	cents: Cents,
+}
 
 ---
 Why an order was refused. `TooLarge` carries the reason the total was
 not a price the shop can charge; `AlreadyDecided` means the id has been
 used; `NotPlaced` means only a placed order can be cancelled.
 ---
-type OrderError = | TooLarge(reason: ValidationError)
-| AlreadyDecided
-| NotPlaced
-embeds ValidationError as TooLarge
+type OrderError =
+	| TooLarge(reason: ValidationError)
+	| AlreadyDecided
+	| NotPlaced
+	embeds ValidationError as TooLarge
 
 ---
 What the order comes to. The total must itself be a `Cents`, so an
@@ -57,7 +62,11 @@ type Status = enum { Pending, Opened, Placed, Rejected, Cancelled }
 ---
 An order as its agent holds it. `line` is `None` until it is opened.
 ---
-type Snapshot = { status: Status, owner: String, line: Option[OrderLine] }
+type Snapshot = {
+	status: Status,
+	owner: String,
+	line: Option[OrderLine],
+}
 
 ---
 One order, keyed by the id the customer chose. The agent owns the order's
@@ -120,7 +129,11 @@ agent Order {
 	}
 
 	on call view() -> Effect[Snapshot] {
-		Snapshot { status: status, owner: owner, line: line }
+		Snapshot {
+			status: status,
+			owner: owner,
+			line: line,
+		}
 	}
 }
 
@@ -132,7 +145,10 @@ type StockError = enum { Insufficient }
 ---
 Stock set aside for one order.
 ---
-type Hold = { order: OrderId, qty: Int }
+type Hold = {
+	order: OrderId,
+	qty: Int,
+}
 
 ---
 The stock of one product. `available` is what can still be sold; a
@@ -187,14 +203,18 @@ agent Inventory {
 		}
 	}
 
-	on call level() -> Effect[Int] { available }
+	on call level() -> Effect[Int] {
+		available
+	}
 
 	on call held() -> Effect[Int] {
 		holds.values.fold(0, (n, h) => n + h.qty)
 	}
 }
 
-type StockRequest = { qty: Quantity }
+type StockRequest = {
+	qty: Quantity,
+}
 
 ---
 An order as the customer sees it.
@@ -244,9 +264,10 @@ fn shown(id: OrderId, o: Snapshot, who: CustomerId) -> Option[OrderView] {
 Whether a product can be ordered. A visitor sees only `InStock` or
 `SoldOut`; a signed-in customer sees how many are left.
 ---
-type Availability = | InStock
-| SoldOut
-| Left(count: Int)
+type Availability =
+	| InStock
+	| SoldOut
+	| Left(count: Int)
 
 service api from http {
 	on PUT("/orders/:id") (

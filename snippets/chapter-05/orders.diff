@@ -1,7 +1,7 @@
 --- a/src/shop/orders.bynk
 +++ b/src/shop/orders.bynk
-@@ -47,6 +47,62 @@
- 	on call view() -> Effect[Option[OrderLine]] { line }
+@@ -54,6 +54,69 @@
+ 	}
  }
  
 +---
@@ -12,7 +12,10 @@
 +---
 +Stock set aside for one order.
 +---
-+type Hold = { order: OrderId, qty: Int }
++type Hold = {
++	order: OrderId,
++	qty: Int,
++}
 +
 +---
 +The stock of one product. `available` is what can still be sold; a
@@ -51,19 +54,23 @@
 +		}
 +	}
 +
-+	on call level() -> Effect[Int] { available }
++	on call level() -> Effect[Int] {
++		available
++	}
 +
 +	on call held() -> Effect[Int] {
 +		holds.values.fold(0, (n, h) => n + h.qty)
 +	}
 +}
 +
-+type StockRequest = { qty: Quantity }
++type StockRequest = {
++	qty: Quantity,
++}
 +
  service api from http {
  	on PUT("/orders/:id") (
  		id: OrderId,
-@@ -63,8 +119,17 @@
+@@ -70,8 +133,17 @@
  						"that order has already been placed"
  					),
  					Ok(_) => {
@@ -83,7 +90,7 @@
  					},
  				}
  			},
-@@ -80,4 +145,19 @@
+@@ -87,4 +159,19 @@
  			Some(l) => Ok(l),
  		}
  	}

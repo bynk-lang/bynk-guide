@@ -1,4 +1,5 @@
 suite shop.payments
+
 case "a charge within the limit is authorised" {
 	expect fakeCharge(orderIdFrom("o1"), 2500) is Ok(_)
 }

@@ -34,8 +34,8 @@
 +---
  What the customer is buying: one sku, how many, and the agreed price.
  ---
- type OrderLine = { sku: Sku, qty: Quantity, cents: Cents }
-@@ -184,7 +203,7 @@
+ type OrderLine = {
+@@ -200,7 +219,7 @@
  	on PUT("/orders/:id") (
  		id: OrderId,
  		body: OrderLine
@@ -44,7 +44,7 @@
  		match total(body) {
  			Err(_) => UnprocessableEntity(
  				"the order comes to more than 100,000.00"
-@@ -222,6 +238,14 @@
+@@ -238,6 +254,14 @@
  									},
  									Ok(_) => {
  										let _ <- Order(id).confirm()
@@ -59,7 +59,7 @@
  										~> Logger.info(
  											"order for \(t) cents"
  										)
-@@ -255,7 +279,7 @@
+@@ -271,7 +295,7 @@
  
  	on POST("/orders/:id/cancel") (
  		id: OrderId
@@ -68,7 +68,7 @@
  		let o <- Order(id).view()
  		match shown(id, o, c.identity) {
  			None => NotFound,
-@@ -267,6 +291,14 @@
+@@ -283,6 +307,14 @@
  					),
  					Ok(_) => {
  						let _ <- Stock.release(v.sku, id)

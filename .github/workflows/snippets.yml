@@ -37,7 +37,7 @@ env:
   # manuscript is revised for a newer release. metadata.typ's bynk-version
   # must change with it: the book prints that release, and ci.yml checks the
   # two agree.
-  BYNK_VERSION: ${{ inputs.version || '0.377.2' }}
+  BYNK_VERSION: ${{ inputs.version || '0.403.3' }}
 
 jobs:
   snippets:

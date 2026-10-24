@@ -22,7 +22,11 @@ actor Admin = Staff where hasClaim("admin")
 ---
 The books at a glance: orders standing, units sold, and what they come to.
 ---
-type Totals = { orders: Int, units: Int, cents: Int }
+type Totals = {
+	orders: Int,
+	units: Int,
+	cents: Int,
+}
 
 ---
 The books. One instance, `Books("main")`, since each total is one number.
@@ -49,7 +53,11 @@ agent Books {
 	}
 
 	on call totals() -> Effect[Totals] {
-		Totals { orders: orders, units: units, cents: cents }
+		Totals {
+			orders: orders,
+			units: units,
+			cents: cents,
+		}
 	}
 }
 
