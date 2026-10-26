@@ -6,6 +6,6 @@
   status: "Review draft",
   year: "2026",
   // The Bynk release every example was checked against. CI requires it to
-  // match the pinned BYNK_VERSION in .github/workflows/snippets.yml.
-  bynk-version: "0.403.3",
+  // match BYNK_VERSION; the canary's bump pull request moves both.
+  bynk-version: "0.403.3", // bynk-pin
 )

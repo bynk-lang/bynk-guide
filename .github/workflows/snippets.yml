@@ -7,7 +7,7 @@
 # TypeScript. What the chapters quote from running them (test runs, HTTP
 # responses, and generated files) is diffed against snippets/TRANSCRIPTS.tsv.
 #
-# ci.yml calls this at the pinned release on every push and pull request.
+# ci.yml calls this at the release in BYNK_VERSION on every push and pull request.
 # bynk-canary.yml calls it at each new Bynk release, so a release that renames
 # a diagnostic a chapter quotes, or changes the formatter, opens a `canary`
 # issue.
@@ -17,27 +17,26 @@ on:
   workflow_call:
     inputs:
       version:
-        description: Bynk version to check against, exact or "latest" (empty for the pinned release)
+        description: Bynk version to check against, exact or "latest" (empty for BYNK_VERSION)
         type: string
         default: ""
   workflow_dispatch:
     inputs:
       version:
-        description: Bynk version to check against, exact or "latest" (empty for the pinned release)
+        description: Bynk version to check against, exact or "latest" (empty for BYNK_VERSION)
         type: string
         default: ""
 
 permissions:
   contents: read
 
-env:
-  # The published compiler the manuscript's diagnostics are written against.
-  # Chapters quote exact diagnostic codes, so this pin is part of the book's
-  # evidence: bump it deliberately, with the snippet gate green, when the
-  # manuscript is revised for a newer release. metadata.typ's bynk-version
-  # must change with it: the book prints that release, and ci.yml checks the
-  # two agree.
-  BYNK_VERSION: ${{ inputs.version || '0.403.3' }}
+# BYNK_VERSION holds the published compiler the manuscript's diagnostics are
+# written against. Chapters quote exact diagnostic codes, so this pin is part
+# of the book's evidence: it moves with the snippet gate green at the new
+# release, which is what the canary's bump pull request shows, and a reviewer
+# merges it once the manuscript still describes that release. metadata.typ's
+# bynk-version (marked `bynk-pin`) moves with it: the book prints that
+# release, and ci.yml checks the two agree.
 
 jobs:
   snippets:
@@ -52,10 +51,11 @@ jobs:
         # runner's default is older.
         with:
           node-version: 22
-      - uses: bynk-lang/setup-bynk@5764a6e9a326badfc9eb47086b8837aace7a5c2a # v1.0.3
+      - uses: bynk-lang/setup-bynk@b89391b688710887f4623aceee894e6b335d3da4 # v1.1.0
         id: bynk
         with:
-          version: ${{ env.BYNK_VERSION }}
+          version: ${{ inputs.version }}
+          version-file: ${{ !inputs.version && 'BYNK_VERSION' || '' }}
       - name: Compile-test the manuscript's Bynk snippets
         run: ./scripts/check-book-snippets.sh
         env:
@@ -129,6 +129,6 @@ jobs:
             echo "A diagnostic changed, or the formatter, a test run, a quoted"
             echo "response or quoted compiler output did. Revise the affected"
             echo "chapter and snippet, then bump"
-            echo "the pin (\`BYNK_VERSION\` in \`.github/workflows/snippets.yml\`)"
+            echo "the pin (\`BYNK_VERSION\`)"
             echo "to this release."
           } >> "$GITHUB_STEP_SUMMARY"
