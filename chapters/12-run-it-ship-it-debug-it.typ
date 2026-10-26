@@ -1,4 +1,7 @@
 #import "../template.typ": code-listing, compiler-message, lead-in
+#import "../metadata.typ": book-meta
+
+#let v = book-meta.bynk-version
 
 = Run it, ship it, debug it <run-it-ship-it-debug-it>
 
@@ -221,8 +224,10 @@ type check and the tests, and annotates diagnostics on the pull request.
 The declared secrets come in through the job's environment, so each reaches
 only its own context. The processor's key goes in the action's `secrets`
 input, which becomes a `--secrets-file`, on a second step for payments
-alone. Pin `version` to the release you test against; the canary tests the
-newer ones.
+alone. Each step reads the Bynk release from `BYNK_VERSION`, a file at the
+project's root holding one exact version, such as #v, so every workflow
+uses the same one. Pin it to the release you test against, and move it in
+one commit when a newer one passes; the canary tests the newer ones.
 
 The action never commits. When a deploy changes `bynk.deploy.lock`, it warns
 and sets a `lock-changed` output, and the change is yours to commit. With
