@@ -71,12 +71,13 @@ is what compiling writes.
 Chapters that print a chapter-to-chapter diff generate it with
 `./scripts/make-book-diffs.sh`.
 
-The book pins **Bynk 0.403.3** (`BYNK_VERSION` in
-`.github/workflows/snippets.yml`, and `bynk-version` in `metadata.typ`; CI fails
-if they differ). It is enrolled in the org
-[canary](https://github.com/bynk-lang/.github/blob/main/canary/README.md) as a
-`book`: on each new Bynk release the gates re-run, and a break opens a `canary`
-issue here that a deliberate revision, and a bump of the pin, closes.
+The book pins **Bynk 0.403.3** <!-- bynk-pin --> ([`BYNK_VERSION`](BYNK_VERSION), and
+`bynk-version` in `metadata.typ`; CI fails if they differ). It is enrolled in
+the org [canary](https://github.com/bynk-lang/.github/blob/main/canary/README.md)
+as a `book`: on each new Bynk release the gates re-run. A break opens a
+`canary` issue here that a deliberate revision, and a bump of the pin, closes.
+A pass opens a pull request moving the pin, which a reviewer merges once the
+manuscript still describes that release.
 
 ## Rights
 

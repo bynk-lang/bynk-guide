@@ -34,13 +34,13 @@ jobs:
           key: typst-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/build-book.sh') }}
       - name: Check the book names the pinned compiler
         # The copyright page and preface print bynk-version from metadata.typ.
-        # It must be the release the snippet gates pin, or the book would name
-        # a compiler its examples were not checked against.
+        # It must be the release the snippet gates pin (BYNK_VERSION), or the
+        # book would name a compiler its examples were not checked against.
         run: |
-          printed="$(sed -n 's/^ *bynk-version: "\(.*\)",$/\1/p' metadata.typ)"
-          pinned="$(sed -n "s/.*BYNK_VERSION: .*|| '\(.*\)' }}$/\1/p" .github/workflows/snippets.yml)"
+          printed="$(sed -n 's/^ *bynk-version: "\([^"]*\)",.*$/\1/p' metadata.typ)"
+          pinned="$(tr -d '[:space:]' < BYNK_VERSION)"; pinned="${pinned#v}"
           if [ -z "$printed" ] || [ "$printed" != "$pinned" ]; then
-            echo "::error file=metadata.typ::bynk-version is '${printed}', but snippets.yml pins '${pinned}'"
+            echo "::error file=metadata.typ::bynk-version is '${printed}', but BYNK_VERSION pins '${pinned}'"
             exit 1
           fi
           echo "The book names Bynk ${printed}, the pinned release."
