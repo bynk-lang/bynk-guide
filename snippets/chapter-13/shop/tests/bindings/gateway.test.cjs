@@ -9,6 +9,7 @@
 //   bynkc test . && node --test tests/bindings/*.test.cjs
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 const path = require("node:path");
 
 const outJs = path.join(__dirname, "..", "..", "out-js");
@@ -17,7 +18,12 @@ const { HttpGateway } = require(
 );
 const { GatewayError } = require(path.join(outJs, "shop", "gateway.js"));
 const { Method, FetchError } = require(path.join(outJs, "bynk.js"));
-const { Ok, Err, Some, None } = require(path.join(outJs, "runtime.js"));
+// Bynk 0.405 emits the runtime per module under __bynk_runtime/; earlier
+// releases emit one runtime.js.
+const runtime = fs.existsSync(path.join(outJs, "__bynk_runtime", "result.js"))
+  ? path.join(outJs, "__bynk_runtime", "result.js")
+  : path.join(outJs, "runtime.js");
+const { Ok, Err, Some, None } = require(runtime);
 
 // A gateway over fake capabilities: `secrets` is the environment, `answer`
 // is what the network does with a request. `sent` records every request.
