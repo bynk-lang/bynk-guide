@@ -71,7 +71,7 @@ is what compiling writes.
 Chapters that print a chapter-to-chapter diff generate it with
 `./scripts/make-book-diffs.sh`.
 
-The book pins **Bynk 0.404.0** <!-- bynk-pin --> ([`BYNK_VERSION`](BYNK_VERSION), and
+The book pins **Bynk 0.434.0** <!-- bynk-pin --> ([`BYNK_VERSION`](BYNK_VERSION), and
 `bynk-version` in `metadata.typ`; CI fails if they differ). It is enrolled in
 the org [canary](https://github.com/bynk-lang/.github/blob/main/canary/README.md)
 as a `book`: on each new Bynk release the gates re-run. A break opens a
