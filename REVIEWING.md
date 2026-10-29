@@ -17,7 +17,7 @@ Each chapter shows what you would write by hand in TypeScript, builds the same
 thing in Bynk, and ends with *What it costs*. The reader, the scope and the
 principles are in [`notes/brief.md`](notes/brief.md).
 
-The book is pinned to **Bynk 0.434.0** <!-- bynk-pin --> and describes exactly that release.
+The book is pinned to **Bynk 0.436.0** <!-- bynk-pin --> and describes exactly that release.
 
 ## Getting the PDF
 
@@ -34,7 +34,7 @@ Or build it yourself (the script fetches the pinned Typst if needed):
 ```
 
 You don't need Bynk installed to read or review. You do if you want to run the
-examples: see chapter 1, *Installing the toolchain*, and install 0.434.0 <!-- bynk-pin -->
+examples: see chapter 1, *Installing the toolchain*, and install 0.436.0 <!-- bynk-pin -->
 exactly.
 
 ## What feedback helps most
