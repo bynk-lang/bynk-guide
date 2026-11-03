@@ -65,6 +65,15 @@ kind = "Map"
 type = "String, String"
 refinement = "String, String where MinLength(1)"
 
+[[agents."shop.inventory.Catalogue".shapes.fields.paths]]
+path = "skus#0"
+type = "String"
+
+[[agents."shop.inventory.Catalogue".shapes.fields.paths]]
+path = "skus#1"
+type = "String"
+refinement = "String where MinLength(1)"
+
 [agents."shop.inventory.Inventory"]
 version = 1
 floor = 1
@@ -79,17 +88,46 @@ kind = "Cell"
 type = "Int"
 refinement = "Int"
 
+[[agents."shop.inventory.Inventory".shapes.fields.paths]]
+path = "available"
+type = "Int"
+
 [[agents."shop.inventory.Inventory".shapes.fields]]
 name = "holds"
 kind = "Map"
 type = "String, {at: Instant, order: String, qty: Int}"
 refinement = "String, {at: Instant, order: String where MinLength(1), qty: Int}"
 
+[[agents."shop.inventory.Inventory".shapes.fields.paths]]
+path = "holds#0"
+type = "String"
+
+[[agents."shop.inventory.Inventory".shapes.fields.paths]]
+path = "holds#1"
+type = "{}"
+
+[[agents."shop.inventory.Inventory".shapes.fields.paths]]
+path = "holds#1.at"
+type = "Instant"
+
+[[agents."shop.inventory.Inventory".shapes.fields.paths]]
+path = "holds#1.order"
+type = "String"
+refinement = "String where MinLength(1)"
+
+[[agents."shop.inventory.Inventory".shapes.fields.paths]]
+path = "holds#1.qty"
+type = "Int"
+
 [[agents."shop.inventory.Inventory".shapes.fields]]
 name = "received"
 kind = "Log"
 type = "String"
 refinement = "String"
+
+[[agents."shop.inventory.Inventory".shapes.fields.paths]]
+path = "received"
+type = "String"
 
 [agents."shop.ledger.Books"]
 version = 1
@@ -105,17 +143,29 @@ kind = "Cell"
 type = "Int"
 refinement = "Int"
 
+[[agents."shop.ledger.Books".shapes.fields.paths]]
+path = "cents"
+type = "Int"
+
 [[agents."shop.ledger.Books".shapes.fields]]
 name = "orders"
 kind = "Cell"
 type = "Int"
 refinement = "Int"
 
+[[agents."shop.ledger.Books".shapes.fields.paths]]
+path = "orders"
+type = "Int"
+
 [[agents."shop.ledger.Books".shapes.fields]]
 name = "units"
 kind = "Cell"
 type = "Int"
 refinement = "Int"
+
+[[agents."shop.ledger.Books".shapes.fields.paths]]
+path = "units"
+type = "Int"
 
 [agents."shop.orders.Order"]
 version = 1
@@ -131,17 +181,68 @@ kind = "Cell"
 type = "Option[{cents: Int, qty: Int, sku: String}]"
 refinement = "Option[{cents: Int where InRange(1, 10000000), qty: Int where InRange(1, 1000), sku: String where MinLength(1)}]"
 
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "line"
+type = "Option"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "line?"
+type = "{}"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "line?.cents"
+type = "Int"
+refinement = "Int where InRange(1, 10000000)"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "line?.qty"
+type = "Int"
+refinement = "Int where InRange(1, 1000)"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "line?.sku"
+type = "String"
+refinement = "String where MinLength(1)"
+
 [[agents."shop.orders.Order".shapes.fields]]
 name = "owner"
 kind = "Cell"
 type = "String"
 refinement = "String"
 
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "owner"
+type = "String"
+
 [[agents."shop.orders.Order".shapes.fields]]
 name = "status"
 kind = "Cell"
 type = "|Cancelled|Opened|Pending|Placed|Rejected"
 refinement = "|Cancelled|Opened|Pending|Placed|Rejected"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "status"
+type = "|"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "status|Cancelled"
+type = "variant"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "status|Opened"
+type = "variant"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "status|Pending"
+type = "variant"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "status|Placed"
+type = "variant"
+
+[[agents."shop.orders.Order".shapes.fields.paths]]
+path = "status|Rejected"
+type = "variant"
 
 [agents."shop.payments.Payment"]
 version = 1
@@ -157,11 +258,27 @@ kind = "Cell"
 type = "Int"
 refinement = "Int"
 
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "cents"
+type = "Int"
+
 [[agents."shop.payments.Payment".shapes.fields]]
 name = "notices"
 kind = "Log"
 type = "{event: String, id: String}"
 refinement = "{event: String, id: String}"
+
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "notices"
+type = "{}"
+
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "notices.event"
+type = "String"
+
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "notices.id"
+type = "String"
 
 [[agents."shop.payments.Payment".shapes.fields]]
 name = "order"
@@ -169,8 +286,36 @@ kind = "Cell"
 type = "String"
 refinement = "String"
 
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "order"
+type = "String"
+
 [[agents."shop.payments.Payment".shapes.fields]]
 name = "status"
 kind = "Cell"
 type = "|Authorised|Captured|Failed|Refunded|Unknown"
 refinement = "|Authorised|Captured|Failed|Refunded|Unknown"
+
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "status"
+type = "|"
+
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "status|Authorised"
+type = "variant"
+
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "status|Captured"
+type = "variant"
+
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "status|Failed"
+type = "variant"
+
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "status|Refunded"
+type = "variant"
+
+[[agents."shop.payments.Payment".shapes.fields.paths]]
+path = "status|Unknown"
+type = "variant"
