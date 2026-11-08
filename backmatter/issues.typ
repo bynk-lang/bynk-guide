@@ -13,6 +13,6 @@ matters, with the issue in `bynk-lang/bynk` that tracks it. At
 The first draft of this book was checked against Bynk 0.330.4, and cited
 thirty issues, most of them found while writing it. Every one was fixed by
 0.371.3, and the chapters' workarounds went with them. The one issue cited at
-that release, that `bynkc test` headed a `system` suite's results
+that release, that `bynk test` headed a `system` suite's results
 `integration` (#2185), is fixed in #book-meta.bynk-version. If a later pin
 needs a workaround, it is listed here, one row to an issue.

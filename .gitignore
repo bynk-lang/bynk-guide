@@ -1,7 +1,7 @@
 build/
 output/pdf/
 
-# Written into snippet projects by bynkc: `test` emits out/ and out-js/, and
+# Written into snippet projects by bynk: `test` emits out/ and out-js/, and
 # `compile` writes a bynk.schema.lock. A project with no events gets an empty
 # lock, which is ignored.
 snippets/**/out/

@@ -2,4 +2,4 @@
     history property failed after 41 runs (seed 0x6948d36)
   shrunk sequence:  [Open({"sku":"yekvfdjg","qty":238,
                       "cents":2366505}), Cancel()]
-  reproduce: bynkc test tests/shop/orders.bynk --seed 0x6948d36
+  reproduce: bynk test tests/shop/orders.bynk --seed 0x6948d36

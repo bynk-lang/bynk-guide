@@ -4,9 +4,9 @@
 // the processor's answers: the edge cases that are easiest to pin down
 // in TypeScript.
 //
-// Run after `bynkc test .`, which compiles the project to out-js/:
+// Run after `bynk test .`, which compiles the project to out-js/:
 //
-//   bynkc test . && node --test tests/bindings/*.test.cjs
+//   bynk test . && node --test tests/bindings/*.test.cjs
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");

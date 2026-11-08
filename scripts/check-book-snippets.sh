@@ -4,7 +4,7 @@
 #
 # Working principle 7 of README.md ("Compile-test every listing presented as a
 # complete program") is otherwise only a manual discipline: CI typesets the
-# manuscript but never compiles snippets/. This script runs `bynkc check` over
+# manuscript but never compiles snippets/. This script runs `bynk check` over
 # every snippet project and asserts each one's expected outcome:
 #
 #   * most projects must type-check cleanly (a valid program);
@@ -15,8 +15,8 @@
 # Expectations for the non-clean projects live in snippets/EXPECTATIONS.tsv.
 # Any project not listed there must check cleanly, warnings included.
 #
-# The compiler is whichever `bynkc` is on PATH; override with
-# BYNKC=/path/to/bynkc. In CI, bynk-lang/setup-bynk installs a pinned release.
+# The compiler is whichever `bynk` is on PATH; override with
+# BYNK=/path/to/bynk. In CI, bynk-lang/setup-bynk installs a pinned release.
 # The chapters quote diagnostic codes from a *published* compiler, so the
 # version this runs against is part of the evidence — it is printed below.
 
@@ -26,13 +26,13 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SNIPPETS="$ROOT/snippets"
 MANIFEST="$SNIPPETS/EXPECTATIONS.tsv"
 
-BYNKC="${BYNKC:-$(command -v bynkc || true)}"
-if [ -z "$BYNKC" ] || [ ! -x "$BYNKC" ]; then
-  echo "bynkc not found on PATH. Install the Bynk toolchain (see README.md)," >&2
-  echo "or set BYNKC=/path/to/bynkc." >&2
+BYNK="${BYNK:-$(command -v bynk || true)}"
+if [ -z "$BYNK" ] || [ ! -x "$BYNK" ]; then
+  echo "bynk not found on PATH. Install the Bynk toolchain (see README.md)," >&2
+  echo "or set BYNK=/path/to/bynk." >&2
   exit 2
 fi
-printf 'Checking snippets with %s\n\n' "$("$BYNKC" --version 2>/dev/null || printf '%s' "$BYNKC")"
+printf 'Checking snippets with %s\n\n' "$("$BYNK" --version 2>/dev/null || printf '%s' "$BYNK")"
 
 fail=0
 checked=0
@@ -41,7 +41,7 @@ while IFS= read -r toml; do
   rel="${dir#"$SNIPPETS"/}"
   checked=$((checked + 1))
 
-  out="$("$BYNKC" check --format short "$dir" 2>&1)"
+  out="$("$BYNK" check --format short "$dir" 2>&1)"
   rc=$?
 
   spec="$(awk -F'\t' -v p="$rel" '$1 == p { print $2 "\t" $3; exit }' "$MANIFEST")"

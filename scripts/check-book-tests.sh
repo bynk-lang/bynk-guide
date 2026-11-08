@@ -5,7 +5,7 @@
 # The compile gate (scripts/check-book-snippets.sh) type-checks a project's
 # tests/ along with its sources, but nothing there runs them: a case can fail
 # while CI stays green, and the book prints its suite as passing. This runs
-# `bynkc test .` in every project that has a tests/ directory and fails if any
+# `bynk test .` in every project that has a tests/ directory and fails if any
 # case does. The deliberately rejected `fail` fixtures in
 # snippets/EXPECTATIONS.tsv are skipped: they do not compile.
 #
@@ -15,13 +15,13 @@
 #
 # A project whose adapter binding is TypeScript can also test the binding as
 # TypeScript, in tests/bindings/*.test.cjs, against the out-js/ build that
-# `bynkc test` leaves behind. Those run with `node --test` after the suite
+# `bynk test` leaves behind. Those run with `node --test` after the suite
 # passes.
 #
 # Each project runs on a copy with no out/ or out-js/, so a stale runner never
 # answers for the current sources and the checkout is left untouched.
 #
-# `bynkc test` needs `tsc` and `node` on PATH.
+# `bynk test` needs `tsc` and `node` on PATH.
 
 set -uo pipefail
 
@@ -30,13 +30,13 @@ SNIPPETS="$ROOT/snippets"
 MANIFEST="$SNIPPETS/EXPECTATIONS.tsv"
 TRANSCRIPTS="$SNIPPETS/TRANSCRIPTS.tsv"
 
-BYNKC="${BYNKC:-$(command -v bynkc || true)}"
-if [ -z "$BYNKC" ] || [ ! -x "$BYNKC" ]; then
-  echo "bynkc not found on PATH. Install the Bynk toolchain (see README.md)," >&2
-  echo "or set BYNKC=/path/to/bynkc." >&2
+BYNK="${BYNK:-$(command -v bynk || true)}"
+if [ -z "$BYNK" ] || [ ! -x "$BYNK" ]; then
+  echo "bynk not found on PATH. Install the Bynk toolchain (see README.md)," >&2
+  echo "or set BYNK=/path/to/bynk." >&2
   exit 2
 fi
-printf 'Running snippet tests with %s\n\n' "$("$BYNKC" --version 2>/dev/null || printf '%s' "$BYNKC")"
+printf 'Running snippet tests with %s\n\n' "$("$BYNK" --version 2>/dev/null || printf '%s' "$BYNK")"
 
 # The `test` transcripts quoted from a project, one path per line.
 transcripts_of() {
@@ -71,14 +71,14 @@ while IFS= read -r toml; do
   mkdir -p "$copy" && cp -R "$dir/." "$copy/"
   rm -rf "$copy/out" "$copy/out-js"
 
-  out="$(cd "$copy" && NO_COLOR=1 "$BYNKC" test . 2>&1)"
+  out="$(cd "$copy" && NO_COLOR=1 "$BYNK" test . 2>&1)"
   rc=$?
   run="$(printf '%s\n' "$out" | sed -n '/^Running tests\.\.\.$/,$p')"
   summary="$(printf '%s\n' "$run" | grep -E '^[0-9]+ passed, [0-9]+ failed\.$' | tail -n 1)"
 
   problem=""
   if [ "$rc" -ne 0 ]; then
-    problem="bynkc test exited $rc"
+    problem="bynk test exited $rc"
   elif [ -z "$summary" ]; then
     problem="no test summary in the output"
   elif ! printf '%s' "$summary" | grep -q ' 0 failed\.$'; then
@@ -104,7 +104,7 @@ while IFS= read -r toml; do
     quoted=$((quoted + 1))
     if [ ! -f "$SNIPPETS/$t" ]; then
       stale="$stale$t: listed in TRANSCRIPTS.tsv but missing"$'\n'
-    elif ! d="$(diff -u --label "$t (quoted)" --label "$t (bynkc test)" \
+    elif ! d="$(diff -u --label "$t (quoted)" --label "$t (bynk test)" \
       "$SNIPPETS/$t" <(printf '%s\n' "$run"))"; then
       stale="$stale$t: the quoted run no longer matches"$'\n'"$d"$'\n'
     fi
@@ -134,6 +134,6 @@ if [ "$fail" -eq 0 ]; then
   echo "($skipped rejected fixtures skipped.)"
 else
   echo "Some snippet tests failed, or a quoted run no longer matches."
-  echo "Fix the case, or regenerate the transcript from \`bynkc test .\`."
+  echo "Fix the case, or regenerate the transcript from \`bynk test .\`."
 fi
 exit "$fail"

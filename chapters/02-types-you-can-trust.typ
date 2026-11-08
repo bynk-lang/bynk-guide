@@ -269,7 +269,7 @@ route by its pattern, followed by its parameters, so
 a test needs; `expect r == Ok(v)` compares the whole result when it isn't.
 
 #lead-in[
-Run the suite with `bynkc test .`:
+Run the suite with `bynk test .`:
 ]
 
 #code-listing(
@@ -278,7 +278,7 @@ Run the suite with `bynkc test .`:
   lang: "text",
 )
 
-`bynkc test` compiles the project and the tests to TypeScript, type-checks
+`bynk test` compiles the project and the tests to TypeScript, type-checks
 them with `tsc`, and runs them with Node. There is no test runner to choose
 and no mock of the Workers runtime to configure.
 

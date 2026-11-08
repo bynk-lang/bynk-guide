@@ -9,7 +9,7 @@
 # program is laid out. Without this gate a hand-edited snippet drifts from
 # canonical Bynk and the book prints non-idiomatic code while CI stays green.
 #
-# This runs `bynkc fmt --check` over the snippet projects that are expected to
+# This runs `bynk fmt --check` over the snippet projects that are expected to
 # compile: every project not listed in snippets/EXPECTATIONS.tsv, plus the ones
 # listed there as `warn`. The deliberately-rejected `fail` projects are skipped
 # — they exist to be refused, and a future negative fixture may not parse at
@@ -17,7 +17,7 @@
 # book too, so that exemption is a real (small) hole, not a claim of coverage.
 #
 # The file list is enumerated here rather than delegated to project discovery:
-# `bynkc fmt` accepted only files, not directories, before Bynk 0.307.0. `--check` writes nothing: it
+# `bynk fmt` accepted only files, not directories, before Bynk 0.307.0. `--check` writes nothing: it
 # exits non-zero and names each file that is not already canonical.
 #
 # Chapters 1-8 predate the formatter and are not canonical yet. They cannot
@@ -32,8 +32,8 @@
 # has become canonical *fails*, with a note to delete its line. It can only
 # shrink, and everything outside it is gated from today.
 #
-# The compiler is whichever `bynkc` is on PATH; override with
-# BYNKC=/path/to/bynkc. In CI, bynk-lang/setup-bynk installs a pinned release.
+# The compiler is whichever `bynk` is on PATH; override with
+# BYNK=/path/to/bynk. In CI, bynk-lang/setup-bynk installs a pinned release.
 # The formatter ships with the compiler, so canonical layout is defined by the
 # same release the diagnostics are quoted from — its version is printed below.
 
@@ -44,13 +44,13 @@ SNIPPETS="$ROOT/snippets"
 MANIFEST="$SNIPPETS/EXPECTATIONS.tsv"
 BASELINE="$SNIPPETS/FORMAT-BASELINE"
 
-BYNKC="${BYNKC:-$(command -v bynkc || true)}"
-if [ -z "$BYNKC" ] || [ ! -x "$BYNKC" ]; then
-  echo "bynkc not found on PATH. Install the Bynk toolchain (see README.md)," >&2
-  echo "or set BYNKC=/path/to/bynkc." >&2
+BYNK="${BYNK:-$(command -v bynk || true)}"
+if [ -z "$BYNK" ] || [ ! -x "$BYNK" ]; then
+  echo "bynk not found on PATH. Install the Bynk toolchain (see README.md)," >&2
+  echo "or set BYNK=/path/to/bynk." >&2
   exit 2
 fi
-printf 'Format-checking snippets with %s\n\n' "$("$BYNKC" --version 2>/dev/null || printf '%s' "$BYNKC")"
+printf 'Format-checking snippets with %s\n\n' "$("$BYNK" --version 2>/dev/null || printf '%s' "$BYNK")"
 
 is_baselined() {
   [ -f "$BASELINE" ] || return 1
@@ -89,7 +89,7 @@ while IFS= read -r toml; do
   fi
 
   gated=$((gated + 1))
-  out="$("$BYNKC" fmt --check "${files[@]}" 2>&1)"
+  out="$("$BYNK" fmt --check "${files[@]}" 2>&1)"
   rc=$?
 
   if is_baselined "$rel"; then
@@ -105,7 +105,7 @@ while IFS= read -r toml; do
     checked=$((checked + 1))
     formatted=$((formatted + ${#files[@]}))
   else
-    printf 'FAIL    %-42s %s\n' "$rel" "not canonically formatted (run: bynkc fmt <file>)"
+    printf 'FAIL    %-42s %s\n' "$rel" "not canonically formatted (run: bynk fmt <file>)"
     printf '%s\n' "$out" | sed "s|$ROOT/||g; s|^|          \| |"
     fail=1
   fi

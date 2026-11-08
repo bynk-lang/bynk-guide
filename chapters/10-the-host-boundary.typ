@@ -300,7 +300,7 @@ The TypeScript half is tested in TypeScript. An `as integration` case can run
 an adapter's real binding, with its own capabilities taking the test doubles,
 but a binding is TypeScript, and its own edge cases (a `402`, a body that
 isn't JSON) are easiest to pin down in TypeScript. So the binding has tests of
-its own, run with Node against the JavaScript that `bynkc test` leaves in
+its own, run with Node against the JavaScript that `bynk test` leaves in
 `out-js/`.
 
 #lead-in[
@@ -315,7 +315,7 @@ by-name `deps` makes easy:
   breakable: true,
 )
 
-This book's CI runs both, `bynkc test .` and then `node --test
+This book's CI runs both, `bynk test .` and then `node --test
 tests/bindings/*.test.cjs`, and fails if either does.
 
 #code-listing(

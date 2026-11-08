@@ -2,7 +2,7 @@
 #
 # Emit-gate for the manuscript's Bynk snippet projects.
 #
-# check-book-snippets.sh runs `bynkc check`, which proves a program is
+# check-book-snippets.sh runs `bynk check`, which proves a program is
 # accepted. It does not prove the program can be built: a listing can pass
 # `check` and still emit TypeScript that `tsc` rejects (bynk-lang/bynk#1818 is one
 # such case). A chapter presents its listings as working programs, so this gate
@@ -17,7 +17,7 @@
 # event schema registry). Here it must fail to compile with exactly that code
 # on every target.
 #
-# `bynkc compile` writes bynk.schema.lock into the project it compiles, so each
+# `bynk compile` writes bynk.schema.lock into the project it compiles, so each
 # project is copied to a temporary directory first and the snippets tree is
 # never written to.
 #
@@ -28,8 +28,8 @@
 # without failing the gate, and a listed build that starts to pass fails it with
 # a note to delete its line, so the baseline can only shrink.
 #
-# The compiler is whichever `bynkc` is on PATH; override with
-# BYNKC=/path/to/bynkc. TypeScript is whichever `tsc` is on PATH; override with
+# The compiler is whichever `bynk` is on PATH; override with
+# BYNK=/path/to/bynk. TypeScript is whichever `tsc` is on PATH; override with
 # TSC=/path/to/tsc (CI pins a version through npx).
 
 set -uo pipefail
@@ -40,10 +40,10 @@ MANIFEST="$SNIPPETS/EXPECTATIONS.tsv"
 BASELINE="$SNIPPETS/EMIT-BASELINE"
 TARGETS=(bundle workers)
 
-BYNKC="${BYNKC:-$(command -v bynkc || true)}"
-if [ -z "$BYNKC" ] || [ ! -x "$BYNKC" ]; then
-  echo "bynkc not found on PATH. Install the Bynk toolchain (see README.md)," >&2
-  echo "or set BYNKC=/path/to/bynkc." >&2
+BYNK="${BYNK:-$(command -v bynk || true)}"
+if [ -z "$BYNK" ] || [ ! -x "$BYNK" ]; then
+  echo "bynk not found on PATH. Install the Bynk toolchain (see README.md)," >&2
+  echo "or set BYNK=/path/to/bynk." >&2
   exit 2
 fi
 TSC="${TSC:-$(command -v tsc || true)}"
@@ -52,7 +52,7 @@ if [ -z "$TSC" ]; then
   exit 2
 fi
 printf 'Compiling snippets with %s and checking with tsc %s\n\n' \
-  "$("$BYNKC" --version 2>/dev/null || printf '%s' "$BYNKC")" \
+  "$("$BYNK" --version 2>/dev/null || printf '%s' "$BYNK")" \
   "$($TSC --version 2>/dev/null | sed 's/^Version //')"
 
 is_baselined() {
@@ -88,7 +88,7 @@ while IFS= read -r toml; do
   if [ "$kind" = build-fail ]; then
     for target in "${TARGETS[@]}"; do
       out="$work/out-${rel//\//__}-$target"
-      if detail="$("$BYNKC" compile --target "$target" -o "$out" "$copy" 2>&1)"; then
+      if detail="$("$BYNK" compile --target "$target" -o "$out" "$copy" 2>&1)"; then
         printf '  FAIL  %-42s %s: expected the build to refuse [%s], but it compiled\n' "$rel" "$target" "$code"
         fail=$((fail + 1))
       elif ! printf '%s' "$detail" | grep -qF "[$code]"; then
@@ -105,8 +105,8 @@ while IFS= read -r toml; do
   for target in "${TARGETS[@]}"; do
     out="$work/out-${rel//\//__}-$target"
     problem=""
-    if ! detail="$("$BYNKC" compile --target "$target" -o "$out" "$copy" 2>&1)"; then
-      problem="bynkc compile failed"
+    if ! detail="$("$BYNK" compile --target "$target" -o "$out" "$copy" 2>&1)"; then
+      problem="bynk compile failed"
     elif ! detail="$(cd "$out" && $TSC -p . --noEmit 2>&1)"; then
       problem="tsc rejected the emitted code"
     fi
@@ -144,7 +144,7 @@ done < <(find "$SNIPPETS" -name bynk.toml | sort)
 echo
 if [ "$fail" -gt 0 ]; then
   echo "$fail build(s) failed. A listing the book presents as a program must"
-  echo "compile and type-check, not only pass \`bynkc check\`."
+  echo "compile and type-check, not only pass \`bynk check\`."
   exit 1
 fi
 echo "Every gated build of $checked snippet projects compiles and type-checks."

@@ -6,7 +6,7 @@
 = Run it, ship it, debug it <run-it-ship-it-debug-it>
 
 The shop has run on a laptop since chapter 1, under `bynk dev`, and in CI
-under `bynkc test`. It has never run on Cloudflare. This chapter deploys it:
+under `bynk test`. It has never run on Cloudflare. This chapter deploys it:
 three Workers, in the right order, each with the secrets it needs and none it
 doesn't. Then it looks at what you have to go on when a deployed Worker
 misbehaves.
