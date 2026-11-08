@@ -241,7 +241,7 @@ runs the same `system` suites against a running `bynk dev`, or against a
 deployment you name, which is the step from a test of built Workers to a test
 of a live system.
 
-== Beyond `bynkc test` <ix-guide-11-beyond-bynkc-test>
+== Beyond `bynk test` <ix-guide-11-beyond-bynk-test>
 
 Two kinds of test sit outside the tiers, and the shop uses both.
 
@@ -274,7 +274,7 @@ the real Worker the `system` case stood up.
 
 == What it costs <ix-guide-11-what-it-costs>
 
-Three kinds of runner check this shop: `bynkc test`, `node --test` for the
+Three kinds of runner check this shop: `bynk test`, `node --test` for the
 binding, and a shell script against `bynk dev`. Each answers a question the
 others don't, but it is still three things to keep running.
 

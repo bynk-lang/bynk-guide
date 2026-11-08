@@ -56,15 +56,15 @@ Worker, with all of those things, and you will not have written any of them.
 
 == Installing the toolchain <ix-guide-01-installing-the-toolchain>
 
-Bynk is one release, three programs. `bynkc` is the compiler: it checks,
-formats, compiles and tests. `bynk` is the driver, which runs your project
-locally and deploys it. `bynkc-lsp` is the language server for your editor.
+Bynk is one release, two programs. `bynk` is the driver: it checks, formats,
+compiles and tests your project, runs it locally and deploys it. `bynk-lsp` is
+the language server for your editor.
 
 #lead-in[
 This book was checked against Bynk #v. Each release publishes a prebuilt
 archive per platform, with a `SHA256SUMS` file to verify it against. On Linux
 or macOS, download the archive for your machine (this is the x86_64 Linux
-one), check it, and put the three programs on your `PATH`:
+one), check it, and put the programs on your `PATH`:
 ]
 
 #code-listing(
@@ -200,7 +200,7 @@ errors and keeps the last good build running.
 
 There is no separate type-check step in this loop, because the build is the
 type-check. When you want one without running anything, in CI or before a
-commit, `bynkc check .` checks the whole project and prints nothing if it is
+commit, `bynk check .` checks the whole project and prints nothing if it is
 sound.
 
 == A route that takes a parameter <ix-guide-01-a-route-that-takes-a-parameter>
@@ -315,14 +315,14 @@ Bynk has no runtime of its own. It compiles to TypeScript, and the
 TypeScript runs on the Workers runtime you already know. You can read
 everything it writes, and it is worth doing once.
 
-`bynkc compile` has two targets. The default, `bundle`, writes one flat tree
+`bynk compile` has two targets. The default, `bundle`, writes one flat tree
 of TypeScript in which contexts call each other directly, in process.
 It suits a program you will run yourself, or embed. The `workers` target writes one Cloudflare Worker per
 context, with Service Bindings between them, and that is what this book
 builds and deploys. `bynk dev` and `bynk deploy` choose `workers` for you.
 
 #lead-in[
-Compile with `bynkc compile . --output out --target workers` and look at what
+Compile with `bynk compile . --output out --target workers` and look at what
 it wrote (abridged):
 ]
 

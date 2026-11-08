@@ -21,8 +21,7 @@
 # Each project runs on a copy with no out/, out-js/ or .bynk/, so the checkout
 # is left untouched.
 #
-# The driver is `bynk` beside the `bynkc` on PATH, or whichever `bynk` is on
-# PATH; override with BYNK=/path/to/bynk.
+# The driver is whichever `bynk` is on PATH; override with BYNK=/path/to/bynk.
 
 set -uo pipefail
 
@@ -30,11 +29,6 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SNIPPETS="$ROOT/snippets"
 TRANSCRIPTS="$SNIPPETS/TRANSCRIPTS.tsv"
 
-BYNKC="${BYNKC:-$(command -v bynkc || true)}"
-BYNK="${BYNK:-}"
-if [ -z "$BYNK" ] && [ -n "$BYNKC" ] && [ -x "$(dirname "$BYNKC")/bynk" ]; then
-  BYNK="$(dirname "$BYNKC")/bynk"
-fi
 BYNK="${BYNK:-$(command -v bynk || true)}"
 if [ -z "$BYNK" ] || [ ! -x "$BYNK" ]; then
   echo "bynk not found on PATH. Install the Bynk toolchain (see README.md)," >&2

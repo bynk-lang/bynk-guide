@@ -61,7 +61,7 @@ field, but not the value.#footnote[
 
 The lock file helps before it comes to that. `bynk.schema.lock`, beside
 `bynk.toml`, records the shape of each agent's stored state as well as each
-event's: every `Cell`, `Map` and `Log` with its type and refinement. `bynkc check`, `bynkc test`, the editor and every build compare the code
+event's: every `Cell`, `Map` and `Log` with its type and refinement. `bynk check`, `bynk test`, the editor and every build compare the code
 with the committed lock, and a stored record is stamped with the schema version it was
 written under, so a record the code can't read faults at load instead of being
 guessed at. That gives three rules:
@@ -157,7 +157,7 @@ schema registry cannot evolve additively — field(s) added without a default:
 customer
 ]
 
-`bynkc check`, `bynkc test`, the editor and every build compare each event
+`bynk check`, `bynk test`, the editor and every build compare each event
 with the committed lock, read-only, so a breaking event change fails CI and
 shows in the editor before anyone builds it. Only a build writes the lock,
 which is why an additive change passes the check and the next compile records

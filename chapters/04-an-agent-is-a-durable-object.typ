@@ -232,7 +232,7 @@ A test can call an agent directly, by key. Two new cases:
   lang: "bynk",
 )
 
-`bynkc test` gives each agent an in-memory store, so there is nothing to set
+`bynk test` gives each agent an in-memory store, so there is nothing to set
 up: no Miniflare, no storage to clear.
 
 #lead-in[

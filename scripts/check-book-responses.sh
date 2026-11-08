@@ -42,11 +42,6 @@ TRANSCRIPTS="$SNIPPETS/TRANSCRIPTS.tsv"
 QUOTED_HOST="localhost:8787"
 READY_TIMEOUT="${READY_TIMEOUT:-180}"
 
-BYNKC="${BYNKC:-$(command -v bynkc || true)}"
-BYNK="${BYNK:-}"
-if [ -z "$BYNK" ] && [ -n "$BYNKC" ] && [ -x "$(dirname "$BYNKC")/bynk" ]; then
-  BYNK="$(dirname "$BYNKC")/bynk"
-fi
 BYNK="${BYNK:-$(command -v bynk || true)}"
 if [ -z "$BYNK" ] || [ ! -x "$BYNK" ]; then
   echo "bynk not found on PATH. Install the Bynk toolchain (see README.md)," >&2

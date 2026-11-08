@@ -65,7 +65,7 @@ The language still changes. The defence is the one *Architecture that compiles*
 uses:
 
 - Every listing is a snippet project under `snippets/`, held by three gates
-  (`bynkc check`, `bynkc fmt --check`, and a build with `tsc --strict`).
+  (`bynk check`, `bynk fmt --check`, and a build with `tsc --strict`).
 - The book pins one Bynk release (`metadata.typ`'s `bynk-version`, matched in
   CI against `snippets.yml`) and prints it.
 - The org canary re-runs the gates against every new release and opens a

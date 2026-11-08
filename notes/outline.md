@@ -15,7 +15,7 @@ the issue, as `brief.md` asks.
 
 1. **A Worker in Bynk**
    Installing Bynk, `bynk.toml` and the project layout. A context and an HTTP
-   service. `bynkc check`, `bynk dev`. What it emits. The two targets: `bundle`,
+   service. `bynk check`, `bynk dev`. What it emits. The two targets: `bundle`,
    the compiler's default, makes one TypeScript tree with in-process calls and
    no Durable Objects; `workers` makes one Worker per context, which is what
    this book builds and deploys. Say how to choose it, and what `bundle` is for.
@@ -138,7 +138,7 @@ the issue, as `brief.md` asks.
     `bynk.tier.mixed_system_suite`, `bynk.stub.at_system`. What else
     `system` drives (`.schedule`, `.message`, `advance Clock`) and `bynk test
     --against`. The run heads `system` suites `integration`
-    (bynk-lang/bynk#2185). Beyond `bynkc test`: binding tests in Node and e2e
+    (bynk-lang/bynk#2185). Beyond `bynk test`: binding tests in Node and e2e
     against `bynk dev`.
     *Replaces:* a Miniflare harness.
 12. **Run it, ship it, debug it**

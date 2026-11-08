@@ -2,7 +2,7 @@
 #
 # Gate for the compiler output the chapters quote.
 #
-# A chapter that shows what `bynkc compile` generates, a wrangler.toml or a line
+# A chapter that shows what `bynk compile` generates, a wrangler.toml or a line
 # of a handler's TypeScript, prints a copy of it. The emit gate
 # (scripts/check-book-emit.sh) proves that output type-checks, but nothing holds
 # the copy to it: a release that changes the code generator makes the page wrong
@@ -16,12 +16,12 @@
 # matches are fixed strings, not patterns. Selected lines lose the indentation
 # they share, since a page prints an excerpt flush left.
 #
-# Each project compiles on a copy with no out/, out-js/ or .bynk/: `bynkc
+# Each project compiles on a copy with no out/, out-js/ or .bynk/: `bynk
 # compile` writes bynk.schema.lock into the project, and a stale out/ must never
 # answer for the current sources.
 #
-# The compiler is whichever `bynkc` is on PATH; override with
-# BYNKC=/path/to/bynkc.
+# The compiler is whichever `bynk` is on PATH; override with
+# BYNK=/path/to/bynk.
 
 set -uo pipefail
 
@@ -29,14 +29,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SNIPPETS="$ROOT/snippets"
 TRANSCRIPTS="$SNIPPETS/TRANSCRIPTS.tsv"
 
-BYNKC="${BYNKC:-$(command -v bynkc || true)}"
-if [ -z "$BYNKC" ] || [ ! -x "$BYNKC" ]; then
-  echo "bynkc not found on PATH. Install the Bynk toolchain (see README.md)," >&2
-  echo "or set BYNKC=/path/to/bynkc." >&2
+BYNK="${BYNK:-$(command -v bynk || true)}"
+if [ -z "$BYNK" ] || [ ! -x "$BYNK" ]; then
+  echo "bynk not found on PATH. Install the Bynk toolchain (see README.md)," >&2
+  echo "or set BYNK=/path/to/bynk." >&2
   exit 2
 fi
 printf 'Checking quoted compiler output against %s\n\n' \
-  "$("$BYNKC" --version 2>/dev/null || printf '%s' "$BYNKC")"
+  "$("$BYNK" --version 2>/dev/null || printf '%s' "$BYNK")"
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
@@ -85,7 +85,7 @@ while IFS=$'\t' read -r t k p target path from to; do
   if [ ! -d "$copy" ]; then
     mkdir -p "$copy" && cp -R "$SNIPPETS/$p/." "$copy/"
     rm -rf "$copy/out" "$copy/out-js" "$copy/.bynk"
-    if ! out="$(cd "$copy" && NO_COLOR=1 "$BYNKC" compile . --output out --target "$target" 2>&1)"; then
+    if ! out="$(cd "$copy" && NO_COLOR=1 "$BYNK" compile . --output out --target "$target" 2>&1)"; then
       printf 'FAIL    %-42s %s\n' "$t" "$p does not compile for $target"
       printf '%s\n' "$out" | sed 's/^/          | /'
       rm -rf "$copy"
@@ -96,7 +96,7 @@ while IFS=$'\t' read -r t k p target path from to; do
 
   generated="$copy/out/$path"
   if [ ! -f "$generated" ]; then
-    printf 'FAIL    %-42s %s\n' "$t" "bynkc compile --target $target wrote no out/$path"
+    printf 'FAIL    %-42s %s\n' "$t" "bynk compile --target $target wrote no out/$path"
     fail=1
     continue
   fi
@@ -126,9 +126,9 @@ done < "$TRANSCRIPTS"
 
 echo
 if [ "$fail" -eq 0 ]; then
-  echo "All $checked quoted pieces of compiler output match what bynkc compile writes."
+  echo "All $checked quoted pieces of compiler output match what bynk compile writes."
 else
   echo "Some quoted compiler output no longer matches. Copy the chapter's file"
-  echo "again from \`bynkc compile\` at this release."
+  echo "again from \`bynk compile\` at this release."
 fi
 exit "$fail"

@@ -51,17 +51,17 @@ Every listing is a project under `snippets/` held by three gates, and what
 the chapters quote from running, compiling or deploying it by four more:
 
 ```sh
-./scripts/check-book-snippets.sh   # bynkc check: clean, or the exact refusal quoted
-./scripts/check-book-format.sh     # bynkc fmt --check
+./scripts/check-book-snippets.sh   # bynk check: clean, or the exact refusal quoted
+./scripts/check-book-format.sh     # bynk fmt --check
 ./scripts/check-book-emit.sh       # build, then tsc --strict on the emitted TypeScript
-./scripts/check-book-tests.sh      # bynkc test: every case passes, quoted runs match
+./scripts/check-book-tests.sh      # bynk test: every case passes, quoted runs match
 ./scripts/check-book-responses.sh  # bynk dev: quoted HTTP responses match
-./scripts/check-book-emitted.sh    # bynkc compile: quoted generated files match
+./scripts/check-book-emitted.sh    # bynk compile: quoted generated files match
 ./scripts/check-book-plans.sh      # bynk deploy --dry-run: quoted plans and refusals match
 ./scripts/check-book-issues.sh     # the issues appendix lists every issue a chapter cites
 ```
 
-They use whichever `bynkc` (and `bynk`) is on `PATH`; CI installs the pinned release with
+They use whichever `bynk` (and `bynk`) is on `PATH`; CI installs the pinned release with
 [`setup-bynk`](https://github.com/bynk-lang/setup-bynk). Non-clean expectations
 are in `snippets/EXPECTATIONS.tsv`, and each quoted transcript is listed with
 its project in `snippets/TRANSCRIPTS.tsv`; known format and build failures are
@@ -71,7 +71,7 @@ is what compiling writes.
 Chapters that print a chapter-to-chapter diff generate it with
 `./scripts/make-book-diffs.sh`.
 
-The book pins **Bynk 0.510.34** <!-- bynk-pin --> ([`BYNK_VERSION`](BYNK_VERSION), and
+The book pins **Bynk 0.512.10** <!-- bynk-pin --> ([`BYNK_VERSION`](BYNK_VERSION), and
 `bynk-version` in `metadata.typ`; CI fails if they differ). It is enrolled in
 the org [canary](https://github.com/bynk-lang/.github/blob/main/canary/README.md)
 as a `book`: on each new Bynk release the gates re-run. A break opens a
