@@ -22,6 +22,8 @@ jobs:
           path: build/toolchain
           key: typst-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/build-book.sh') }}
       - name: Build the manuscript
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: ./scripts/build-book.sh
       - name: Create the release
         env:
