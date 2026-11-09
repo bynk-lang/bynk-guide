@@ -51,6 +51,8 @@ jobs:
       - name: Check the issues appendix lists every cited issue
         run: ./scripts/check-book-issues.sh
       - name: Build the manuscript
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: ./scripts/build-book.sh
       - name: Upload the manuscript PDF
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

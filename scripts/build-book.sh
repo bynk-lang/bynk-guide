@@ -117,8 +117,16 @@ bootstrap_typst() {
   local url="https://github.com/typst/typst/releases/download/v$TYPST_VERSION/$asset"
 
   log "Downloading Typst $TYPST_VERSION for $platform..."
-  curl --fail --location --retry 3 --silent --show-error \
-    --output "$archive" "$url"
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    # In Actions, download only through the authenticated API: the anonymous
+    # github.com/<repo>/releases/download route answers 504s under load.
+    [[ -n "${GH_TOKEN:-}" ]] || die "GH_TOKEN must be set in Actions to download Typst (pass github.token)"
+    gh release download "v$TYPST_VERSION" --repo typst/typst \
+      --pattern "$asset" --output "$archive"
+  else
+    curl --fail --location --retry 3 --silent --show-error \
+      --output "$archive" "$url"
+  fi
 
   local actual
   actual="$(sha256_file "$archive")"
