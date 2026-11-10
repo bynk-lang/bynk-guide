@@ -15,18 +15,18 @@ jobs:
       AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
       PAYMENTS_WEBHOOK_SECRET: ${{ secrets.PAYMENTS_WEBHOOK_SECRET }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: bynk-lang/bynk-ci@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: bynk-lang/bynk-ci@16971dbe8db701e2cd3905f68f9e2f50e84ab366 # v1.2.1
         with:
           version-file: BYNK_VERSION
           source: .
-      - uses: bynk-lang/bynk-deploy@v2
+      - uses: bynk-lang/bynk-deploy@422b47aeb37ba7ad0d8ba1f87755ae7e422dc462 # v2.2.2
         with:
           version-file: BYNK_VERSION
           cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       # The processor's key, which only payments reads.
-      - uses: bynk-lang/bynk-deploy@v2
+      - uses: bynk-lang/bynk-deploy@422b47aeb37ba7ad0d8ba1f87755ae7e422dc462 # v2.2.2
         with:
           version-file: BYNK_VERSION
           context: shop.payments
