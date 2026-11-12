@@ -276,14 +276,17 @@ The second is the one-armed `if`. Write the logging line without `do`:
 )
 
 #compiler-message[
-[bynk.parse.expected_token] Error: expected `}` to close the block, found
-`Ok`
+[bynk.parse.bare_expression_statement] Error: an expression cannot stand alone
+as a statement; its value would be discarded
 ]
 
-The error points at the line after the `if`, and it doesn't mention `do`.
-Without `do`, the `if` is read as the block's final expression, its value,
-and nothing may follow it. When you see this message on the line after an
-`if`, add `do`.
+The error points at the `if` itself, and it doesn't mention `do`. Without
+`do`, the `if` is an expression, and an expression on a line of its own would
+have its value thrown away. The compiler then adds a second error,
+`bynk.effect.unbound_effect`, because the `if` holds a `Logger` call that is
+started and never awaited. Its note suggests binding the value with `let _ =`
+or `let _ <-`. For a logging line you want to run, not to keep, the answer is
+`do`: when you see either message on a bare `if`, add `do`.
 
 == The status is part of the type <ix-guide-01-the-status-is-part-of-the-type>
 
