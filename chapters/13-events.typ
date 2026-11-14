@@ -110,7 +110,7 @@ And a subscriber for each event:
 
 #code-listing(
   [Counting a placed order],
-  source-lines(ledger, 63, 83),
+  source-lines(ledger, 63, 78),
   lang: "bynk",
 )
 
@@ -125,10 +125,23 @@ The order's total isn't on the event. It is `qty * cents`, worked out by the
 subscriber. Orders announces what happened, and each listener derives what it
 needs.
 
-`Idempotency` is the first-party capability for at-least-once delivery.
-`dedup` looks up a key, and `remember` stores a value under it for a time.
-Keys are scoped to the handler that uses them, so `OnPlaced` and
-`OnCancelled` can't collide even if they see the same id.
+`Idempotency` is the first-party capability for at-least-once delivery, and
+`claim` is its one-step answer to "have I seen this id?". The first call for a
+key returns `Claimed`, and every later call within `expiresAfter` (here seven
+days) returns `AlreadyClaimed`. The handler binds the `Claimed` case with
+`let ... <- ... else`, so a repeat takes the `else` arm, which does nothing,
+and the order is counted once. Keys are scoped to the handler that uses them,
+so `OnPlaced` and `OnCancelled` can't collide even if they see the same id.
+
+`claim` replaces a pair of calls the capability also has, `dedup` to look a
+key up and `remember` to store it afterwards. Those two are check-then-act:
+two deliveries of the same event that arrive together can both look, both find
+nothing, and both count the order. `claim` looks and records as one step, so
+only one of two concurrent deliveries is told it is first. If the handler
+fails, whether by a fault, a returned `Err` or a 5xx `HttpResult`, the claim is
+released so that a redelivery can claim again. Otherwise it is held for the
+full seven days. Until the handler settles, the claim is held for 30 seconds
+only.
 
 #lead-in[
 Consuming orders lets the ledger subscribe to its events. It doesn't let the
@@ -195,19 +208,20 @@ obvious from the source.
   or can't be reached, the fan-out logs `EventsFanout delivery failed`, with
   the event and the subscriber, and moves on. There is no retry and no log to
   replay from. The order is placed and the books miss it.
-- *`Idempotency` remembers in memory.* Its provider keeps keys in the
-  isolate, so they are gone when Cloudflare recycles it, and two isolates
-  don't share them.
+- *`Idempotency` is only as durable as its provider.* On Cloudflare it is
+  backed by D1, so claims survive an isolate being recycled and are shared
+  between isolates. Under `bynk dev` on Node, and in the browser, it is in
+  memory, and a restart forgets every claim.
 
-So the shop's dedup guards against the duplicate deliveries that the design's
+So the shop's claim guards against the duplicate deliveries that the design's
 at-least-once guarantee allows. The failure delivery actually has today is a
 missed event, and that one is logged rather than prevented. Both are named in
 the events guide's account of what Bynk's events don't yet give you.
 
-A ledger that had to be right would keep the event ids it has seen in the
-agent's own storage, as payments keeps its webhook notices in chapter 10, and
-would need a way to replay what it missed. This one is a running total for the
-shop's staff, and it can afford to be approximately right.
+`claim` makes the ledger's guard sound, but it does not make the books
+complete. A ledger that had to be right would also need a way to replay what
+it missed. This one is a running total for the shop's staff, and it can afford
+to be approximately right.
 
 == Testing it <ix-guide-13-testing-it>
 
@@ -230,8 +244,7 @@ delivering the same one twice is exactly the duplicate the dedup is for.
 
 The ledger's suite runs in process, so its `Idempotency` is the test double,
 which remembers for the length of the case. That is why the case passes: it
-checks the subscriber's logic, not the provider's memory, which the previous
-section said is shorter than the design promises.
+checks the subscriber's logic, not the provider, which on Cloudflare is D1.
 
 #code-listing(
   [The suites, run],
@@ -239,6 +252,10 @@ section said is shorter than the design promises.
   lang: "text",
   breakable: true,
 )
+
+On some Node 22 releases the `system` case also makes Node print an
+`ExperimentalWarning` about its built-in SQLite, with a process id in it. It
+comes from Node, not from Bynk, and the transcript leaves it out.
 
 == Deploying it <ix-guide-13-deploying-it>
 
@@ -253,6 +270,9 @@ Chapter 12 deployed three Workers. Now there are four:
   breakable: true,
 )
 
+The ledger is the first context here to need a database of its own. Its
+`Idempotency` is backed by D1 on Cloudflare, so the plan creates one, named
+for the ledger, and applies its two migrations before the Worker is pushed.
 The ledger deploys before orders, because orders delivers events to it
 through a Service Binding, so orders binds to the ledger. The ledger's
 `consumes shop.orders` is there only to name the events, and a context that
@@ -276,9 +296,8 @@ cancellation first, and the books would dip below zero for a moment. The
 ledger doesn't refuse that with an invariant, because refusing the
 cancellation would lose it.
 
-And delivery itself is thinner than the design: one attempt, and an
-in-memory `Idempotency`. The hand-written queue at the start of the chapter
-has retries.
+And delivery itself is thinner than the design: one attempt. The
+hand-written queue at the start of the chapter has retries.
 
 == Where this leaves the shop <ix-guide-13-where-this-leaves-the-shop>
 

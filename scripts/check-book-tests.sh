@@ -73,7 +73,12 @@ while IFS= read -r toml; do
 
   out="$(cd "$copy" && NO_COLOR=1 "$BYNK" test . 2>&1)"
   rc=$?
-  run="$(printf '%s\n' "$out" | sed -n '/^Running tests\.\.\.$/,$p')"
+  # Node prints a two-line warning on stderr, with its process id, when a
+  # `system` case reaches the local SQLite. It is not
+  # the compiler's output and it differs on every run, so leave it out of what
+  # the quoted transcripts are compared with.
+  run="$(printf '%s\n' "$out" | sed -n '/^Running tests\.\.\.$/,$p' |
+    grep -vE '^\(node:[0-9]+\) ExperimentalWarning: SQLite is an experimental feature|^\(Use `node --trace-warnings \.\.\.` to show where the warning was created\)$')"
   summary="$(printf '%s\n' "$run" | grep -E '^[0-9]+ passed, [0-9]+ failed\.$' | tail -n 1)"
 
   problem=""

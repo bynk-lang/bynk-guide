@@ -159,10 +159,12 @@ the issue, as `brief.md` asks.
     Opens Part V. Orders declares `OrderPlaced` and `OrderCancelled` and emits
     them from its route handlers (an agent could; its emissions release at
     commit). The ledger (`uses shop.values`): `Books` agent, a subscriber per
-    event deduping on `env.eventId` with `Idempotency`, `GET /totals` for an
+    event claiming `env.eventId` with `Idempotency.claim` (race-free, unlike
+    `dedup` then `remember`, which is check-then-act), `GET /totals` for an
     `Admin`. Refusal: `bynk.event.emit_outside_owner`. Delivery, from the
     emitted code: inside the request, signed per edge, attempted once, a
-    failure logged and dropped; `Idempotency` is in memory. Tested with
+    failure logged and dropped; `Idempotency` is D1-backed on Cloudflare (durable,
+    shared), in memory on Node and in the browser; the plan gains a D1 database. Tested with
     `OnPlaced.event(e, env)`, twice. The four-context deploy plan.
     *Replaces:* hand-rolled queues and fan-out. *Shop:* the ledger.
 14. **Time and queues**
