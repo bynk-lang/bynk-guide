@@ -254,9 +254,9 @@ service api from http {
 														customer: c.identity,
 													}
 												)
-												~> Logger.info(
+												do Logger.info(
 													"order for \(t) cents"
-												)
+												).detach()
 												Created(OrderView {
 													id: id,
 													status: "placed",

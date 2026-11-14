@@ -24,4 +24,4 @@
 +														customer: c.identity,
  													}
  												)
- 												~> Logger.info(
+ 												do Logger

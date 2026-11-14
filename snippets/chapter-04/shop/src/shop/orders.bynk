@@ -70,7 +70,7 @@ service api from http {
 						"that order has already been placed"
 					),
 					Ok(_) => {
-						~> Logger.info("order for \(t) cents")
+						do Logger.info("order for \(t) cents").detach()
 						Created(body)
 					},
 				}

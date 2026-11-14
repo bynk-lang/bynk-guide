@@ -140,7 +140,9 @@ service api from http {
 						match held {
 							Err(Insufficient) => Conflict("out of stock"),
 							Ok(_) => {
-								~> Logger.info("order for \(t) cents")
+								do Logger
+									.info("order for \(t) cents")
+									.detach()
 								Created(body)
 							},
 						}

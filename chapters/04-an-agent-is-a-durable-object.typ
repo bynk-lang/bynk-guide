@@ -271,11 +271,13 @@ The zero rule takes some getting used to. Every field needs an honest
 starting value, which often means an `Option` and a `match` where TypeScript
 would have let you write `!`.
 
-And `~>` has no place in an agent's handler. A store operation such as
-`update` is part of the handler's commit, so there is nothing to send in the
-background, and the compiler refuses `~> count.update(…)`: write
-`do count.update(…)`. Any other send from an agent is refused too; await it
-with `let _ <-` or `do`.
+And `detach` has no place in an agent's handler. A store operation such as
+`update` is part of the handler's commit, so there is nothing to detach, and
+the compiler refuses `count.update(…).detach()` with `bynk.detach.store_op`:
+write `do count.update(…)`. Any other detach in an agent handler is refused
+too, with `bynk.detach.in_agent_handler`, because an agent handler has no
+execution context to keep a detached effect alive; await the effect with
+`let _ <-` or `do`.
 
 == Where this leaves the order <ix-guide-04-where-this-leaves-the-order>
 

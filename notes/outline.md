@@ -34,8 +34,9 @@ the issue, as `brief.md` asks.
    spelling), `Result`, exhaustive `match`, `?` and `embeds`, mapping to HTTP
    status explicitly. *Shop:* `total` re-admits `qty * cents` as `Cents`, so an
    order over 100,000.00 is a `422` (bynk-lang/shop#6). Then
-   `Effect`, `<-` and `given`, and the send grid: `let _ <-` waits, `~>` does
-   not, and `Effect[()]` is not `void` (a durable write must be awaited).
+   `Effect`, `<-` and `given`, and the send grid: `let _ <-` waits, `e.detach()` does
+   not (a fault or an `Err` is reported, not lost; best effort, not retried;
+   refused in an agent handler; `~>` was the pre-0.603 spelling), and `Effect[()]` is not `void` (a durable write must be awaited).
    *Replaces:* `throw` and `try`/`catch`, and `async`/`await` by habit.
 
 ## Part II: State

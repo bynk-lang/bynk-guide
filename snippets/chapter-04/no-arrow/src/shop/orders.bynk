@@ -58,7 +58,7 @@ service api from http {
 			),
 			Ok(t) => {
 				let opened = Order(id).open(body)
-				~> Logger.info("order for \(t) cents")
+				do Logger.info("order for \(t) cents").detach()
 				Created(body)
 			},
 		}

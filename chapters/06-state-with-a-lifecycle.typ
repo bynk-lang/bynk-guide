@@ -135,7 +135,7 @@ Placing an order now decides it either way:
 
 #code-listing(
   [Deciding the order],
-  source-lines(orders, 244, 261),
+  source-lines(orders, 244, 263),
   lang: "bynk",
 )
 
@@ -145,7 +145,7 @@ And a placed order can be cancelled, which gives its stock back:
 
 #code-listing(
   [Cancelling an order],
-  source-lines(orders, 277, 304),
+  source-lines(orders, 279, 306),
   lang: "bynk",
 )
 

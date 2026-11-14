@@ -70,11 +70,11 @@
  service api from http {
  	on PUT("/orders/:id") (
  		id: OrderId,
-@@ -70,8 +133,17 @@
+@@ -70,8 +133,19 @@
  						"that order has already been placed"
  					),
  					Ok(_) => {
--						~> Logger.info("order for \(t) cents")
+-						do Logger.info("order for \(t) cents").detach()
 -						Created(body)
 +						let held <- Inventory(body.sku).reserve(
 +							id,
@@ -83,14 +83,16 @@
 +						match held {
 +							Err(Insufficient) => Conflict("out of stock"),
 +							Ok(_) => {
-+								~> Logger.info("order for \(t) cents")
++								do Logger
++									.info("order for \(t) cents")
++									.detach()
 +								Created(body)
 +							},
 +						}
  					},
  				}
  			},
-@@ -87,4 +159,19 @@
+@@ -87,4 +161,19 @@
  			Some(l) => Ok(l),
  		}
  	}

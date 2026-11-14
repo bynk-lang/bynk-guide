@@ -56,9 +56,9 @@
 +												cents: body.cents,
 +											}
 +										)
- 										~> Logger.info(
- 											"order for \(t) cents"
- 										)
+ 										do Logger
+ 											.info("order for \(t) cents")
+ 											.detach()
 @@ -271,7 +295,7 @@
  
  	on POST("/orders/:id/cancel") (

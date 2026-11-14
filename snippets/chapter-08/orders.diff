@@ -9,7 +9,7 @@
  consumes bynk { Logger }
  
  ---
-@@ -285,26 +212,40 @@
+@@ -285,28 +212,40 @@
  						"that order has already been placed"
  					),
  					Ok(_) => {
@@ -25,7 +25,9 @@
  							},
  							Ok(_) => {
 -								let _ <- Order(id).confirm()
--								~> Logger.info("order for \(t) cents")
+-								do Logger
+-									.info("order for \(t) cents")
+-									.detach()
 -								Created(OrderView {
 -									id: id,
 -									status: "placed",
@@ -48,9 +50,9 @@
 +									},
 +									Ok(_) => {
 +										let _ <- Order(id).confirm()
-+										~> Logger.info(
-+											"order for \(t) cents"
-+										)
++										do Logger
++											.info("order for \(t) cents")
++											.detach()
 +										Created(OrderView {
 +											id: id,
 +											status: "placed",

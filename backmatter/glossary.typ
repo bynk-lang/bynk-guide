@@ -66,8 +66,8 @@ Bynk Book's reference has the exact rules.
 
 #term[`Effect`][1][
   The type of a computation that reaches outside the program. `<-` runs one
-  and binds its result, `~>` sends one without waiting, and `do` runs one for
-  its effect alone.
+  and binds its result, `.detach()` stops waiting for one, and `do` runs one
+  for its effect alone.
 ]
 
 #term[`embeds`][3][
