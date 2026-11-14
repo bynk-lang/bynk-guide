@@ -253,6 +253,10 @@ checks the subscriber's logic, not the provider, which on Cloudflare is D1.
   breakable: true,
 )
 
+On some Node 22 releases the `system` case also makes Node print an
+`ExperimentalWarning` about its built-in SQLite, with a process id in it. It
+comes from Node, not from Bynk, and the transcript leaves it out.
+
 == Deploying it <ix-guide-13-deploying-it>
 
 #lead-in[
