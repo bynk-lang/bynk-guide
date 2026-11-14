@@ -188,30 +188,48 @@ spellings.
 
 - `let x <- op(…)` calls `op`, waits, and binds the value it returns.
 - `let _ <- op(…)` waits for an operation whose value you don't need.
-- `~> op(…)` sends it and doesn't wait. The handler carries on, and the
-  response can go out before the send has finished.
+- `do op(…).detach()` stops waiting for it. `detach` is a method on any
+  effect, and it returns an `Effect[()]` that completes at once, so the
+  handler carries on and the response can go out before `op` has finished.
 
 There is no fourth spelling. A value you don't wait for has nowhere to go,
-so that combination doesn't exist.#footnote[
-  The Bynk Book, “Synchronous and asynchronous sends”.
+so `detach` gives back `()`, and what becomes of a failure is the subject of
+the next few paragraphs.#footnote[
+  The Bynk Book, the capabilities reference, on `detach`. Earlier releases
+  spelled this `~> op(…)`. That form is deprecated
+  (`bynk.send.deprecated`), and `bynk check --fix` rewrites it.
 ]
 
-A log line is the clearest case for `~>`: nothing that follows depends on it,
-and the customer shouldn't wait for it. On Workers, `~>` becomes the same
-call you would have written by hand.
+A log line is the clearest case for `detach`: nothing that follows depends on
+it, and the customer shouldn't wait for it. It never starts anything, and it
+never delays anything. An effect is already running by the time you hold it,
+like a promise that has been created, and `detach` only stops waiting for it.
+On Workers it hands that running promise to `waitUntil`, the call you would
+have written by hand.
 
 #lead-in[
 From the compiled handler:
 ]
 
 #code-listing(
-  [What `~>` compiles to],
+  [What `detach` compiles to],
   read("../snippets/chapter-03/emitted/send.ts"),
   lang: "typescript",
 )
 
 `deps.__exec` is the request's execution context, passed through from
-`fetch`, so the log runs to completion after the response has gone.
+`fetch`, so the log can run to completion after the response has gone. The
+helper `__bynkDetach` passes the promise to its `waitUntil`, and the string
+is the detach site, so a report can say where it came from. On Workers,
+`waitUntil` work can run for up to 30 seconds after the response.
+
+A detached result is never silently lost. If the effect faults, the fault goes
+to the platform's exception path, labelled with the detach site. If it
+returns an `Err`, the runtime writes one structured `console.error` record
+naming the site, the error's type and, for a sum type like `OrderError`, the
+variant tag. It leaves out the payload, because the payload can hold a
+credential. An `Ok`, and any value that isn't a `Result`, report nothing.
+This is best effort: the work isn't retried.
 
 One warning, before it matters. The choice is about _waiting_, not about
 whether a value comes back. A write to storage often returns nothing, an
@@ -262,9 +280,9 @@ Run it:
   lang: "text",
 )
 
-Chapter 2's test that calls the route still passes. Its handler now sends a
-log line with `~>`, and in a test every send is awaited before the case's
-expectations are checked, so a case never races its own handler.
+Chapter 2's test that calls the route still passes. Its handler now detaches
+a log line. In a test the harness records each report from a detached effect
+and doesn't fail the case.
 
 == The whole change <ix-guide-03-the-whole-change>
 
@@ -292,9 +310,11 @@ final shop handles that with a single `Err(_)` arm for `total`. A narrower
 error type for each function avoids it, at the cost of more types and more
 `embeds`.
 
-`~>` gives up something too. If a sent operation fails, nothing in the
-handler finds out. That is right for a log line, and wrong for anything the
-next line depends on, which is why the choice is yours to make at every call.
+`detach` gives up something too. The handler never learns whether the detached
+operation worked. A failure is reported, to the platform or to the log, but
+it isn't returned to you, and nothing retries it. That is right for a log
+line, and wrong for anything the next line depends on, which is why the
+choice is yours to make at every call.
 
 And a bug is still a bug. A handler that faults (an index out of range, say)
 is logged and answered with a `500`, as chapter 1 showed. `Result` is for the

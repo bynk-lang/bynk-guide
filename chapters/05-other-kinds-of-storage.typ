@@ -169,7 +169,7 @@ The `PUT` handler now reserves stock once the order is open:
 
 #code-listing(
   [Opening, then reserving],
-  source-lines(orders, 134, 147),
+  source-lines(orders, 134, 149),
   lang: "bynk",
 )
 

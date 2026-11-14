@@ -262,9 +262,9 @@ service api from http {
 												cents: body.cents,
 											}
 										)
-										~> Logger.info(
-											"order for \(t) cents"
-										)
+										do Logger
+											.info("order for \(t) cents")
+											.detach()
 										Created(OrderView {
 											id: id,
 											status: "placed",

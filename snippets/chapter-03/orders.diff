@@ -40,7 +40,7 @@
 +				"the order comes to more than 100,000.00"
 +			),
 +			Ok(t) => {
-+				~> Logger.info("order for \(t) cents")
++				do Logger.info("order for \(t) cents").detach()
 +				Created(body)
 +			},
 +		}
