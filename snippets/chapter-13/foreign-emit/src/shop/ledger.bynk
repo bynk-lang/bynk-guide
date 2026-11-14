@@ -2,7 +2,7 @@ context shop.ledger
 
 uses shop.values
 consumes shop.orders
-consumes bynk { Events, Idempotency }
+consumes bynk { Events, Idempotency, Claim }
 
 ---
 Staff: anyone with a token signed with the shop's secret. Only an admin
@@ -22,7 +22,11 @@ actor Admin = Staff where hasClaim("admin")
 ---
 The books at a glance: orders standing, units sold, and what they come to.
 ---
-type Totals = { orders: Int, units: Int, cents: Int }
+type Totals = {
+	orders: Int,
+	units: Int,
+	cents: Int,
+}
 
 ---
 The books. One instance, `Books("main")`, since each total is one number.
@@ -49,7 +53,11 @@ agent Books {
 	}
 
 	on call totals() -> Effect[Totals] {
-		Totals { orders: orders, units: units, cents: cents }
+		Totals {
+			orders: orders,
+			units: units,
+			cents: cents,
+		}
 	}
 }
 
@@ -64,23 +72,17 @@ service backfill {
 }
 
 ---
-Delivery is at least once by design, so each subscriber asks
-`Idempotency` whether it has seen the event's id before it counts the
-order.
+Delivery is at least once by design, so each subscriber claims the
+event's id with `Idempotency` before it counts the order, and a repeat
+is dropped.
 ---
 service OnPlaced from Events(OrderPlaced) {
 	on event(
 		e: OrderPlaced,
 		env: EventEnvelope
 	) -> Effect[()] given Idempotency {
-		let seen <- Idempotency.dedup[()](env.eventId)
-		match seen {
-			Some(_) => (),
-			None => {
-				let _ <- Books("main").placed(e.qty, e.qty * e.cents)
-				let _ <- Idempotency.remember[()](env.eventId, (), 7.days)
-			},
-		}
+		let Claim.Claimed <- Idempotency.claim(env.eventId, 7.days) else {}
+		let _ <- Books("main").placed(e.qty, e.qty * e.cents)
 	}
 }
 
@@ -89,14 +91,8 @@ service OnCancelled from Events(OrderCancelled) {
 		e: OrderCancelled,
 		env: EventEnvelope
 	) -> Effect[()] given Idempotency {
-		let seen <- Idempotency.dedup[()](env.eventId)
-		match seen {
-			Some(_) => (),
-			None => {
-				let _ <- Books("main").cancelled(e.qty, e.qty * e.cents)
-				let _ <- Idempotency.remember[()](env.eventId, (), 7.days)
-			},
-		}
+		let Claim.Claimed <- Idempotency.claim(env.eventId, 7.days) else {}
+		let _ <- Books("main").cancelled(e.qty, e.qty * e.cents)
 	}
 }
 

@@ -1,6 +1,8 @@
 durable object Inventory (sqlite; advisory — Cloudflare reconciles it)
 secret set BYNK_CALL_FROM_SHOP__ORDERS (managed)
 deploy shop-inventory
+d1 create shop-ledger-idempotency (D1_IDEMPOTENCY)
+d1 migrate shop-ledger-idempotency (2 files; pending ones applied before the push)
 durable object Books (sqlite; advisory — Cloudflare reconciles it)
 secret set AUTH_JWT_SECRET (declared)
 secret set BYNK_CALL_FROM_SHOP__ORDERS (managed)

@@ -273,10 +273,12 @@ stocking a delivery has to be safe to repeat:
   lang: "bynk",
 )
 
-This is the dedup chapter 13 recommended for a ledger that had to be right:
-the ids live in the agent's own storage, in a `Log` kept for 30 days, and the
-check and the restock commit together. `Idempotency` would have been shorter,
-but it forgets when the isolate does.
+Chapter 13's ledger guarded its handlers with `Idempotency.claim`. Here the
+ids live in the agent's own storage instead, in a `Log` kept for 30 days, and
+the check and the restock commit together. A claim is a separate step from
+the restock, held in a different store, so the agent can't use one to make
+the other atomic. When the work is a write to the agent's own state, keeping
+the ids beside it is the tighter guard.
 
 #lead-in[
 A test sends a message with `.message`:

@@ -248,9 +248,9 @@ change much better than it _manages_ it.
     The Bynk Book, “Versioning & roadmap”.
   ]
 - *Delivery you can rely on.* Events are delivered once, inside the
-  emitting request, with no retry, and `Idempotency` remembers only as long
-  as an isolate lives (chapter 13). A durable provider and retries are
-  named as future work.
+  emitting request, with no retry (chapter 13). `Idempotency` is durable on
+  Cloudflare, so a duplicate is caught, but nothing redelivers an event that
+  was lost. Retries are named as future work.
 
 == What it costs <ix-guide-15-what-it-costs>
 
