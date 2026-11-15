@@ -2,7 +2,7 @@ context shop.ledger
 
 uses shop.values
 consumes shop.orders
-consumes bynk { Events, Idempotency, Claim }
+consumes bynk { Events, Idempotency, Claim, EventEnvelope }
 
 ---
 Staff: anyone with a token signed with the shop's secret. Only an admin
