@@ -196,8 +196,8 @@ There is no fourth spelling. A value you don't wait for has nowhere to go,
 so `detach` gives back `()`, and what becomes of a failure is the subject of
 the next few paragraphs.#footnote[
   The Bynk Book, the capabilities reference, on `detach`. Earlier releases
-  spelled this `~> op(…)`. That form is deprecated
-  (`bynk.send.deprecated`), and `bynk check --fix` rewrites it.
+  spelled this `~> op(…)`. That form is now removed
+  (`bynk.parse.removed_send_arrow`).
 ]
 
 A log line is the clearest case for `detach`: nothing that follows depends on
