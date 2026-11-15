@@ -1,4 +1,7 @@
 suite shop.ledger {
+	consumes shop.orders { OrderPlaced }
+	consumes bynk { EventEnvelope }
+
 	case "the books start empty" {
 		let t <- Books("main").totals()
 		expect t == Totals { orders: 0, units: 0, cents: 0 }

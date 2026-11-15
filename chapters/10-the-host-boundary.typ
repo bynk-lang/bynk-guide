@@ -140,9 +140,11 @@ provider gains a real branch:
   lang: "bynk",
 )
 
-`consumes shop.gateway { Gateway }`, at the top of the file, brings
-`Gateway` into the context the way `consumes bynk { Secrets }` brings in
-`Secrets`. `CardProcessor` is now given both. With the fake setting it still
+`consumes shop.gateway { Gateway, GatewayError }`, at the top of the file,
+brings `Gateway` and its error type into the context the way
+`consumes bynk { Secrets }` brings in `Secrets`. A `consumes` line applies to
+the file that writes it: another file in the same context, or a test suite,
+must write its own to use these names. `CardProcessor` is now given both. With the fake setting it still
 uses `fakeCharge`; with anything else it asks the gateway, and maps the
 gateway's two errors to the shop's own. Because the gateway and the shop both
 have a `Declined`, the names are qualified: `GatewayError.Declined`,
@@ -277,7 +279,7 @@ it at its seam:
 
 #code-listing(
   [Stubbing the gateway],
-  source-lines("../snippets/chapter-10/shop/tests/shop/payments.bynk", 36, 65),
+  source-lines("../snippets/chapter-10/shop/tests/shop/payments.bynk", 39, 68),
   lang: "bynk",
 )
 
@@ -287,7 +289,7 @@ And the webhook's replay guard, through the agent:
 
 #code-listing(
   [A notice delivered twice],
-  source-lines("../snippets/chapter-10/shop/tests/shop/payments.bynk", 101, 120),
+  source-lines("../snippets/chapter-10/shop/tests/shop/payments.bynk", 104, 123),
   lang: "bynk",
 )
 

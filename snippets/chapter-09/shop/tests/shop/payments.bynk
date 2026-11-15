@@ -1,5 +1,7 @@
 suite shop.payments
 
+consumes bynk { Secrets }
+
 case "a charge within the limit is approved" {
 	stub Secrets.get("PAYMENTS_PROCESSOR") returns Some("fake")
 	let r <- authorise.call(
